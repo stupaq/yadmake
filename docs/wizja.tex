@@ -1,0 +1,38 @@
+%% IOP - wizja projektu
+%
+
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{fullpage}
+\usepackage{graphicx}
+
+\title{Wizja projektu ,,System rozproszonej kompilacji''}
+\author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
+\date{27 lutego 2012~r.}
+
+\begin{document}
+
+\maketitle
+
+\section{Motywacja}
+Kompilacja złożonych projektów informatycznych trwa nieraz bardzo długo na pojedynczym komputerze. Czasem komputer jest nawet za słaby, aby podołać temu w rozsądnym czasie. Obecnie mamy do dyspozycji coraz szybsze środki transferu danych. Powstaje więc pomysł wykorzystania ich do przyspieszenia procesu kompilacji poprzez rozproszenie obliczeń.
+
+Część istniejących rozwiązań tego problemu oparta jest na podmianie klasycznych kompilatorów przez specjalne wersje i ukierunkowana przez to na jeden język programowania. Inne zaś nie zapewniają wystarczającej automatyzacji procesu, wymagając od użytkownika zapewnienia dzielonej przestrzeni dyskowej i synchronizacji czasu.
+
+Nasz system docelowo ma nie wymagać od użytkownika osobnego zajmowania się rozproszonym systemem plików i być niezależny od technologii zastosowanej w kompilowanym programie.
+
+\section{Założenia projektowe}
+System docelowo ma przyspieszać kompilację złożonych projektów informatycznych poprzez zrównoleglanie tego procesu.
+
+\section{Użytkownicy}
+Dużą grupę odbiorców i potencjalnych użytkowników znajdujemy w społeczności opensource, w szczególności grupach związanych z różnymi dystrybucjami rozpowszechniającymi paczki z oprogramowaniem w postaci binarnej.
+
+\section{Zasada działania systemu}
+	Nasz program ma działać na następującej zasadzie. Oryginalny plik Makefile będzie dzielony na mniejsze fragmenty. Poszczególne części będą wykonywane na różnych komputerach po przesłaniu do nich potrzebnych plików. Następnie wyniki będą zbierane na jednym centralnym komputerze. Na nim także będzie działać program zarządzający rozdzielaniem zadań pomiędzy jednostki kompilujące.
+
+
+\end{document}
+
+% vim: noet:sw=2:ts=2
