@@ -1,38 +1,19 @@
-# versatile Makefile
-CXX			:= g++
-CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams
-LDFLAGS		:= -Wall -lboost_iostreams
+all: main
 
-# sources
-SOURCES		:= $(shell find -name "*.cpp")
-# objects containing main() definition
-MAINOBJECTS	:= $(subst .cpp,.o,$(shell grep -l "int main" $(SOURCES)))
-# executables (linked from MAINOBJECTS)
-ALL			:= $(subst .o,,$(MAINOBJECTS))
-# submakefiles
-DEPENDS		:= $(subst .cpp,.d,$(SOURCES))
-# all objects
-ALLOBJECTS	:= $(subst .cpp,.o,$(SOURCES))
-# objects not containing main() definition
-OBJECTS		:= $(filter-out $(MAINOBJECTS),$(ALLOBJECTS)) 
+main: main.o exec.o err.o commands.o
+	g++ main.o exec.o err.o commands.o -Wall -ggdb -o main
 
-all: $(DEPENDS) $(ALL)
+commands.o: commands.cpp
+	g++ commands.cpp -c -Wall -ggdb -std=c++0x 
 
-# create submakefiles
-$(DEPENDS) : %.d : %.cpp
-	$(CXX) $(CXXFLAGS) -MM $< > $@
-	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< >> $@
+main.o: main.cpp
+	g++ main.cpp -c -Wall -ggdb
 
-# link objects
-$(ALL) : % : %.o $(OBJECTS)
-	$(CXX) -s $(LDFLAGS) -o $@ $^
+exec.o: exec.cpp
+	g++ exec.cpp -c -Wall -ggdb
 
-# include submakefiles
--include $(DEPENDS)
+err.o: err.cpp
+	g++ err.cpp -c -Wall -ggdb
 
 clean:
-	-rm -f *.o $(ALL) $(ALLOBJECTS) $(DEPENDS)
-
-debug:
-	@echo $(OBJECTS)
-
+	rm *.o main

@@ -5,7 +5,6 @@
 #include <istream>
 #include <list>
 #include <stdexcept>
-#include <vector>
 #include <unordered_map>
 
 
@@ -34,11 +33,15 @@ class DependencyGraph {
 
 class Target {
 	friend class DependencyGraph;
+   friend std::vector<std::vector<Target*> > get_levels(DependencyGraph* graph);
+   friend void count_one_level(const std::vector<std::string>& basics, const std::string& delimiter,
+      const std::vector<Target*>& to_make, const std::vector<Target*>& not_to_make);
 	public:
 		const int id;
 		const std::string name;
 
 		void addDependency(Target* target);
+      std::string getCommand();
 
 		Target(const std::string& _name);
 		virtual ~Target();
@@ -46,7 +49,11 @@ class Target {
 		std::list<Target*> dependent_targets;
 		std::list<Target*> dependencies;
 		int inord;
+      int outord;
+      std::string command;
 		static int idcounter;
 };
+
+int Target::idcounter = 0;
 
 #endif /* _DBPARSER_ */
