@@ -11,8 +11,12 @@ class Target{};
 class Computer{};
 
 void error(){}
-void exec(const char * prog, Target * t, Computer * c){}
+int exec(Target * t, Computer * c){
+	char argv[][];
+	// build argv
 
+	return execvp("./single_target", argv);
+}
 
 bool done;
 vector<Target *> targets;			// ready to do 
@@ -49,7 +53,9 @@ int main(){
 					error();
 					break;
 				case 	 0: 
-					exec("cos_madrego", t, c);
+					if (exec(t, c) != 0){
+						error();
+					}
 					break;
 				default:	
 					comp[who] = c;
@@ -63,6 +69,7 @@ int main(){
 		if (status != 0){
 			error();
 		}
+
 		free_comp.push_back(comp[who]);
 		comp.erase(who);
 		// na grafie cos cfanego 
