@@ -1,0 +1,90 @@
+%% Plan zarządzania jakością
+%
+
+\documentclass[a4paper]{article}
+
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{wrapfig}
+\usepackage{siunitx}
+\usepackage{xstring}
+\usepackage{float}
+
+
+\title{Plan zarządzania jakością projektu ,,System rozproszonej kompilacji''}
+\author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
+\date{25 marca 2012~r.}
+
+\begin{document}
+
+\maketitle
+
+\section{Wstęp}
+
+
+
+\section{Kod źródłowy}
+
+\subsection{Formatowanie i nazewnictwo}
+
+Dla zachowania czytelności kodu źródłowego przed każdym wydaniem wszystkie pliki źródłowe zostaną przefiltrowane programem \verb+astyle+ aby ujednolicić formatowanie. Nie planujemy narzucać konkretnych standardów formatowania dla gałęzi, w których będzie znajdował się eksperymentalny, niezintegrowany z resztą programu kod.
+
+Nazewnictwo identyfikatorów powinno być zgodne ze standardem wypracowanym przez Google, a opisanym w dokumencie ,,Google C++ Style Guide’’ w wersji 3.199 \cite{googstyle}.
+Nie narzuca się powyższej konwencji na kod zamieszczany w gałęziach eksperymentalnych, tworzonych na użytek rozwijania fragmentów funkcjonalności, które nie zostały jeszcze zintegrowane z resztą kodu, jednak w obowiązkiem opiekunów gałęzi jest dostosowanie się do konwencji nazewniczych jeszcze przed łączeniem z istniejącym kodem.
+
+Do weryfikacji zgodności kodu z przyjętymi standardami przed każdym wydaniem kod musi zostać sprawdzony skryptem \verb+cpplint+ \cite{cpplint}.
+
+\subsection{Wyjątki i zgłaszanie błędów}
+
+Jedyną formą zgłaszania błędów przez funkcje/metody są wyjątki. Nie dopuszczamy zwracania pewnych globalnych flag ani wartości NULL, a wszystkie błędy zgłaszane przez wywoływane funkcje systemowe lub inne, nie obsługujące zgłaszania wyjątków, powinny być przekazywane dalej również w formie wyjątków.
+
+Wyjątki, których wystąpienie jest związane z działaniem danej funkcji, a które nie zostały zadeklarowane w pliku nagłówkowym biblioteki standardowej \verb+stdexcept+ powinny być zadeklarowane w tym samym pliku nagłówkowym co funkcja, która może taki wyjątek podnieść. Ponadto wymaga się, aby każdy wyjątek dziedziczył z jednego z wyjątków zadeklarowanych w \verb+stdexcept+.
+
+\section{Poprawność}
+
+\subsection{Testy jednostkowe}
+
+Każdy moduł powinien dostarczać zestaw testów jednostkowych weryfikujących (przynajmniej w podstawowym zakresie) poprawność. Pozwoli to na szybkie wykrywanie regresji.
+
+Nie ustalono żadnego standardu ani nie narzucono frameworku testów, z racji małej docelowej liczby modułów nie wydaje się to potrzebnym a istotnie zwiększyłoby nakład pracy.
+
+\subsection{Weryfikacja kodu}
+
+Każdy fragment kodu przed połączeniem z istniejącym kodem powinien być zweryfikowany przez innego członka zespołu, niż autor. Weryfikacja powinna składać się z:
+\begin{itemize}
+\item zadeklarowanie przez autora zamierzonych efektów wykonania kodu, wartości zwracanych przy określonych danych wejściowych oraz wszelkich efektów ubocznych
+\item następnie weryfikator sprawdza czy w jego opinii kod spełnia przedstawione wymagania
+\item w razie wątpliwości powinna nastąpić dyskusja rozwiązania, jednak dopiero po próbie weryfikacji rozwiązania, chcemy uniknąć sytuacji kiedy weryfikator sugeruje się przekonaniem autora o poprawności kodu
+\end{itemize}
+
+\subsection{Zgłaszanie błędów}
+
+Błędy zauważone poza powyżej opisanym procesem weryfikacji powinny być zgłaszane w systemie obsługi błędów dla projektu (aktualnie zintegrowany ze stroną projektu w serwisie GitHub). Jeśli błędy wykryte w procesie weryfikacji nie zostały natychmiast poprawione, albo ich naprawa rzutuje na inne moduły systemu, to informacja o takim błędzie również powinna zostać wprowadzona do systemu.
+
+\subsection{Testy wdrożeniowe}
+
+Każde wydanie programu, powinno być dodatkowo testowane poprzez zbudowanie własnego kodu źródłowego (jako system budowania dla projektu wykorzystujemy GNUMake’a).
+
+\section{Wydajność}
+
+Z racji eksperymentalnego charakteru systemu nie znamy kanonicznych sposobów testowania wydajności dla podobnych systemów. W początkowej fazie nie zamierzamy optymalizować fragmentów programu, lecz program jako całość poprzez wybór odpowiednich protokołów komunikacyjnych i architekury systemu.
+
+Profilowanie poszczególnych fragmentów programu przewidujemy dopiero przed wydaniami stabilnymi.
+
+Jedyną miarą wydajności powinno być porównanie z programem GNUMake. Zamierzamy skrócić czas wykonywania celów zawartych w Makefile’ach, dla których możliwe jest zrównoleglanie procesu kompilacji, tak aby wykorzystywał pełną moc obliczeniową ponad trzech standardowych komputerów domowych.
+
+W przypadku budowy projektów, których kompilacja nie może być zrównoleglona w dostateczny sposób zamierzamy osiągnąć czas wykonania nie przekraczający 120\% czasu wykonania programu GNUMake dla tego samego wejścia.
+
+\begin{thebibliography}{9}
+\bibitem{googstyle} http://google-styleguide.googlecode.com/svn/trunk/cppguide.xml
+\bibitem{cpplint} http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
+\end{thebibliography}
+
+\end{document}
+
