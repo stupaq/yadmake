@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <string>
+#include <stdexcept>
 
 
 using std::vector;
@@ -22,8 +23,8 @@ vector<vector<Target*> > get_levels(DependencyGraph* graph) {
             it != level.end(); ++it)
          for(list<Target*>::iterator parent = (*it)->dependent_targets.begin();
                parent != (*it)->dependent_targets.end(); ++parent) {
-            --(*parent)->outord;
-            if ((*parent)->outord == 0)
+            --(*parent)->inord;
+            if ((*parent)->inord == 0)
                next_level.push_back(*parent);
          }
 
@@ -57,7 +58,8 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
    size_t pos = 0;
    for (vector<Target*>::const_iterator it = to_make.begin(); it != to_make.end(); ++it) {
       size_t delimiter_pos = commands.find(delimiter, pos);
-      if (delimiter_pos == string::npos) break; // TODO: some error
+      if (delimiter_pos == string::npos)
+		 throw std::length_error("Lack of commands in a level\n");
       string command = commands.substr(pos, delimiter_pos - pos);
       pos = delimiter_pos + delimiter.length() + 1;
       (*it)->command = command;
