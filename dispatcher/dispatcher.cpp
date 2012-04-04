@@ -10,10 +10,7 @@
 #include <boost/foreach.hpp>
 #include <string>
 
-
 using namespace std;
-
-class Computer{};
 
 void error(){}
 
@@ -23,7 +20,7 @@ int realize(Target * t, Computer * c){
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	
 	boost::char_separator<char> sep("\n");
-   tokenizer tok(t->get_command(), sep);
+   tokenizer tok(t->command, sep);
 
 	BOOST_FOREACH(string s, tok)
 		system(s.c_str());
@@ -38,7 +35,7 @@ void mark_realized(Target * t, vector<Target*> & targets){
 
 	t->realized = true;
 
-   BOOST_FOREACH(Target * i, t->get_dependent_targets()){
+   BOOST_FOREACH(Target * i, t->dependent_targets){
       --(i->topo_ord);
       if (i->topo_ord == 0)
          targets.push_back(i);
@@ -75,7 +72,7 @@ void dispatcher(){
 
 	child_count = 0;
 
-	while(!targets.empty() && child_count > 0){
+	while(!targets.empty() || child_count > 0){
 		while (!targets.empty() && !free_comp.empty()){
 			Target *t = targets.back();
 			targets.pop_back();
@@ -92,6 +89,7 @@ void dispatcher(){
 					if (realize(t, c) != 0){
 						error();
 					}
+               exit(0);
 					break;
 				default:	
 					++child_count;
@@ -124,7 +122,7 @@ void dispatcher(){
 /* tests */
 
 /* realize */
-
+/*
 void realize_test(){
 	Target t("t1");
 	Computer c;
@@ -132,7 +130,7 @@ void realize_test(){
 	realize(&t, &c);
 
 }
-
+*/
 void jakis_test(){
    
 }
