@@ -131,7 +131,4 @@ void realize_test(){
 
 }
 */
-void jakis_test(){
-   
-}
 
