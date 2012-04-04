@@ -45,6 +45,10 @@ void mark_realized(Target * t, vector<Target*> & targets){
    }
 }
 
+void init_free_comp(vector<Computer *> & free_comp){
+   free_comp.push_back(NULL);
+}
+
 void dispatcher(){
 
 	vector<Target *> targets;	// only these ready to make
