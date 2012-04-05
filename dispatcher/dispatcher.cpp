@@ -12,7 +12,10 @@
 
 using namespace std;
 
-void error(){}
+void error(){
+   fprintf(stderr,"error\n");
+   exit(1);
+}
 
 /* bierze target, wykonuje wszystkie komendy w command */
 int realize(Target * t, Computer * c){
@@ -117,7 +120,6 @@ void dispatcher(){
 		mark_realized(t, targets);
 	}
 }
-
 
 /* tests */
 
