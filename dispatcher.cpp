@@ -10,6 +10,7 @@
 #include <string>
 #include "remoteworker.hpp"
 #include "dbparser.hpp"
+#include <stdio.h>
 
 using namespace std;
 
@@ -23,6 +24,8 @@ int realize(Target * t, RemoteWorker * c){
 
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	
+   //   printf("%s\n", t->name.c_str());
+
 	boost::char_separator<char> sep("\n");
    tokenizer tok(t->command, sep);
 
