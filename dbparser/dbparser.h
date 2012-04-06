@@ -30,6 +30,11 @@ class DependencyGraph {
 		std::vector<Target*> leaf_targets_;
 
 		/**
+		 * Initiates inord of each Target with number of dependencies.
+		 */
+		void ReinitInord();
+
+		/**
 		 * Builds DependencyGraph from MakefileDB.
 		 * @param ins reference to std::istream used to read MakefileDB
 		 * @throws CircularDependency
@@ -43,8 +48,9 @@ class DependencyGraph {
 		DependencyGraph(int fd);
 		virtual ~DependencyGraph();
 	protected:
+		std::vector<Target*> all_targets_;
 		void Init(std::istream& ins);
-		void TopologicalSort(const std::unordered_map<std::string, Target*>& targets);
+		void TopologicalSort();
 };
 
 /** Holds single target together with receipes to build. */

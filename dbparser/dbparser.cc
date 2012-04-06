@@ -11,7 +11,6 @@
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/regex.hpp>
 
 #include "dbparser.h"
 
@@ -49,25 +48,17 @@ DependencyGraph::DependencyGraph(int fd) {
 }
 
 DependencyGraph::~DependencyGraph() {
-	/* we're guaranteed that graph is acyclic here */
-	// TODO: inord may not be initialized properly
-	queue<Target*> lvqueue;
-	BOOST_FOREACH(Target*& t, leaf_targets_) {
-		lvqueue.push(t);
+	BOOST_FOREACH(Target*& t, all_targets_) {
+		if (t)
+			delete t;
 	}
+}
 
-	while (!lvqueue.empty()) {
-		Target* currt = lvqueue.front();
-		lvqueue.pop();
-
-		assert(currt->inord_ == 0);
-		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
-			if (--t->inord_ == 0)
-				lvqueue.push(t);
+void DependencyGraph::ReinitInord() {
+	BOOST_FOREACH(Target*& t, all_targets_) {
+		if (t) {
+			t->inord_ = t->dependencies_.size();
 		}
-
-		/* all dependent added to queue */
-		delete currt;
 	}
 }
 
@@ -101,6 +92,7 @@ void DependencyGraph::Init(istream& ins) {
 	while (ins) {
 		getline(ins, line);
 
+		trim(line);
 		int len = line.length();
 		if (len) {
 			if (!skip_flags) {
@@ -129,18 +121,23 @@ void DependencyGraph::Init(istream& ins) {
 								target->AddDependency(access(nodes, depname));
 						}
 					}
-				} else if (line.compare(not_a_target))
+				} else if (line.compare(not_a_target) == 0) {
 					/* skip 'Not a target' block */
 					skip_flags |= 1 << EMPTY_FLAG;
+				} 
 			}
 		} else {
 			skip_flags &= ~(1 << EMPTY_FLAG);
 		}
 	}
 
+	BOOST_FOREACH(const nodes_type&  p, nodes) {
+		all_targets_.push_back(p.second);
+	}
+
 	/* perform topological sorting */
 	try {
-		TopologicalSort(nodes);
+		TopologicalSort();
 	} catch (CircularDependency& e) {
 		BOOST_FOREACH(const nodes_type&  p, nodes) {
 			delete p.second;
@@ -151,16 +148,13 @@ void DependencyGraph::Init(istream& ins) {
 
 }
 
-void DependencyGraph::TopologicalSort(const unordered_map<string, Target*>& nodes) {
+void DependencyGraph::TopologicalSort() {
 	queue<Target*> lvqueue;
-	typedef pair<string, Target*> nodes_type;
-	BOOST_FOREACH(const nodes_type& p, nodes) {
-		Target* t = p.second;
+	BOOST_FOREACH(Target*& t, all_targets_) {
 		assert(t != NULL);
-
 		if (t->inord_ == 0) {
-			lvqueue.push(p.second);
-			leaf_targets_.push_back(p.second);
+			lvqueue.push(t);
+			leaf_targets_.push_back(t);
 		}
 	}
 
@@ -181,10 +175,8 @@ void DependencyGraph::TopologicalSort(const unordered_map<string, Target*>& node
 	}
 
 	/* if something left undone, throw */
-	BOOST_FOREACH(const nodes_type& p, nodes) {
-		Target* t = p.second;
+	BOOST_FOREACH(Target*& t, all_targets_) {
 		assert(t != NULL);
-
 		if (t->inord_ > 0)
 			throw CircularDependency();
 		else
