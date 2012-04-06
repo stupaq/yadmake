@@ -4,11 +4,12 @@
 #include <wait.h>
 #include <vector>
 #include <map>
-#include "dbparser.hpp"
 #include <boost/tokenizer.hpp>
 #include <string>
 #include <boost/foreach.hpp>
 #include <string>
+#include "remoteworker.hpp"
+#include "dbparser.hpp"
 
 using namespace std;
 
@@ -18,7 +19,7 @@ void error(){
 }
 
 /* bierze target, wykonuje wszystkie komendy w command */
-int realize(Target * t, Computer * c){
+int realize(Target * t, RemoteWorker * c){
 
 	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
 	
@@ -45,43 +46,35 @@ void mark_realized(Target * t, vector<Target*> & targets){
    }
 }
 
-void init_free_comp(vector<Computer *> & free_comp){
-   free_comp.push_back(NULL);
-}
-
-void dispatcher(){
+void dispatcher(vector<RemoteWorker *> & free_workers){
 
 	vector<Target *> targets;	// only these ready to make
 	map<pid_t, Target *> targ;
-	vector<Computer *> free_comp;
-	map<pid_t, Computer *> comp;
+	map<pid_t, RemoteWorker *> workers;
 	int child_count;
-
-	// read data about available computers
-
-	// connect with them (check connection or sth)
-	
-   // init free_comp
-   init_free_comp(free_comp);
-
 
 	// get graph
 	DependencyGraph dependency_graph(0);
 
 	// init targets
-
 	targets = dependency_graph.leaf_targets;
+   
+   // count commands TODO 
 
 	// (proces dla każdego targetu)
 
 	child_count = 0;
 
+   // make sure inord is properly initialized
+
 	while(!targets.empty() || child_count > 0){
-		while (!targets.empty() && !free_comp.empty()){
+
+      // send targets to workers as long as there are ready targets and free workers
+		while (!targets.empty() && !free_workers.empty()){
 			Target *t = targets.back();
 			targets.pop_back();
-			Computer *c = free_comp.back();
-			free_comp.pop_back();
+			RemoteWorker *c = free_workers.back();
+			free_workers.pop_back();
 
 			pid_t who;
 
@@ -97,12 +90,13 @@ void dispatcher(){
 					break;
 				default:	
 					++child_count;
-					comp[who] = c;
+					workers[who] = c;
 					targ[who] = t;
 					break;
 			}
 		}
-
+      
+      // wait for children
 		int status;
 		pid_t who;
 
@@ -112,8 +106,8 @@ void dispatcher(){
 		}
 		--child_count;
 
-		free_comp.push_back(comp[who]);
-		comp.erase(who);
+		free_workers.push_back(workers[who]);
+		workers.erase(who);
 
 		Target *t = targ[who];
 		targ.erase(who);
@@ -128,7 +122,7 @@ void dispatcher(){
 /*
 void realize_test(){
 	Target t("t1");
-	Computer c;
+	RemoteWorker c;
 	t.set_command("echo ala\necho alala\necho ololo");
 	realize(&t, &c);
 

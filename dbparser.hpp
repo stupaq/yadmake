@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+#include "remoteworker.hpp"
 
 class Target;
 class DependencyGraph;
@@ -31,9 +32,6 @@ class DependencyGraph {
 		/* throws CircularDependency */
 };
 
-class Computer{
-};
-
 class Target {
 	friend class DependencyGraph;
 	friend std::vector<std::vector<Target*> > get_levels(DependencyGraph graph);
@@ -41,7 +39,7 @@ class Target {
 			const std::vector<Target*>& to_make, const std::vector<Target*>& not_to_make);
 
    friend void dispatcher();
-   friend int realize(Target * t, Computer * c);
+   friend int realize(Target * t, RemoteWorker * c);
    friend void mark_realized(Target * t, std::vector<Target*> & targets);
 
 	public:
