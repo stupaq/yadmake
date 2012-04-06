@@ -39,8 +39,8 @@ void mark_realized(Target * t, vector<Target*> & targets){
 	t->realized = true;
 
    BOOST_FOREACH(Target * i, t->dependent_targets){
-      --(i->topo_ord);
-      if (i->topo_ord == 0)
+      --(i->inord);
+      if (i->inord == 0)
          targets.push_back(i);
    }
 }
