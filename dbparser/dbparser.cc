@@ -13,7 +13,7 @@
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/regex.hpp>
 
-#include "dbparser.hpp"
+#include "dbparser.h"
 
 using namespace std;
 using namespace boost;
@@ -23,13 +23,13 @@ using namespace boost::algorithm;
 
 int Target::idcounter = 0;
 
-void Target::addDependency(Target* target) {
-	dependencies.push_back(target);
-	target->dependent_targets.push_back(this);
-	++inord;
+void Target::AddDependency(Target* target) {
+	dependencies_.push_back(target);
+	target->dependent_targets_.push_back(this);
+	++inord_;
 }
 
-Target::Target(const string& _name) : id(Target::idcounter++), name(_name),	inord(0) {
+Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), inord_(0) {
 }
 
 Target::~Target() {
@@ -37,7 +37,7 @@ Target::~Target() {
 
 
 DependencyGraph::DependencyGraph(istream& ins) {
-	init(ins);
+	Init(ins);
 }
 
 DependencyGraph::DependencyGraph(int fd) {
@@ -45,14 +45,14 @@ DependencyGraph::DependencyGraph(int fd) {
 	stream_buffer<file_descriptor_source> fdstream(fdsource);
 	istream ins(&fdstream);
 
-	init(ins);
+	Init(ins);
 }
 
 DependencyGraph::~DependencyGraph() {
-	/* we're guaranteed that graph is acyclic here
-	 * and inord are initialized properly */
+	/* we're guaranteed that graph is acyclic here */
+	// TODO: inord may not be initialized properly
 	queue<Target*> lvqueue;
-	BOOST_FOREACH(Target*& t, leaf_targets) {
+	BOOST_FOREACH(Target*& t, leaf_targets_) {
 		lvqueue.push(t);
 	}
 
@@ -60,9 +60,9 @@ DependencyGraph::~DependencyGraph() {
 		Target* currt = lvqueue.front();
 		lvqueue.pop();
 
-		assert(currt->inord == 0);
-		BOOST_FOREACH(Target*& t, currt->dependent_targets) {
-			if (--t->inord == 0)
+		assert(currt->inord_ == 0);
+		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
+			if (--t->inord_ == 0)
 				lvqueue.push(t);
 		}
 
@@ -71,7 +71,7 @@ DependencyGraph::~DependencyGraph() {
 	}
 }
 
-static inline Target*& create_if_not_in(unordered_map<string, Target*>& map,
+static inline Target*& access(unordered_map<string, Target*>& map,
 		const string& name) {
 	Target*& target = map[name];
 	if (target == NULL)
@@ -79,7 +79,7 @@ static inline Target*& create_if_not_in(unordered_map<string, Target*>& map,
 	return target;
 }
 
-void DependencyGraph::init(istream& ins) {
+void DependencyGraph::Init(istream& ins) {
 	/* parser internal flags */
 #define EMPTY_FLAG 1
 
@@ -119,14 +119,14 @@ void DependencyGraph::init(istream& ins) {
 						name.resize(name_len-1);
 						--name_len;
 
-						Target* target = create_if_not_in(nodes, name);
+						Target* target = access(nodes, name);
 						while (iss) {
 							string depname;
 							iss >> depname;
 
 							trim(depname);
 							if (!depname.empty())
-								target->addDependency(create_if_not_in(nodes, depname));
+								target->AddDependency(access(nodes, depname));
 						}
 					}
 				} else if (line.compare(not_a_target))
@@ -140,7 +140,7 @@ void DependencyGraph::init(istream& ins) {
 
 	/* perform topological sorting */
 	try {
-		topological_sort(nodes);
+		TopologicalSort(nodes);
 	} catch (CircularDependency& e) {
 		BOOST_FOREACH(const nodes_type&  p, nodes) {
 			delete p.second;
@@ -151,16 +151,16 @@ void DependencyGraph::init(istream& ins) {
 
 }
 
-void DependencyGraph::topological_sort(const unordered_map<string, Target*>& nodes) {
+void DependencyGraph::TopologicalSort(const unordered_map<string, Target*>& nodes) {
 	queue<Target*> lvqueue;
 	typedef pair<string, Target*> nodes_type;
 	BOOST_FOREACH(const nodes_type& p, nodes) {
 		Target* t = p.second;
 		assert(t != NULL);
 
-		if (t->inord == 0) {
+		if (t->inord_ == 0) {
 			lvqueue.push(p.second);
-			leaf_targets.push_back(p.second);
+			leaf_targets_.push_back(p.second);
 		}
 	}
 
@@ -168,13 +168,13 @@ void DependencyGraph::topological_sort(const unordered_map<string, Target*>& nod
 		Target* currt = lvqueue.front();
 		lvqueue.pop();
 
-		assert(currt->inord == 0);
-		if (currt->dependent_targets.empty()) {
+		assert(currt->inord_ == 0);
+		if (currt->dependent_targets_.empty()) {
 			/* we're top-tier */
-			main_targets.push_back(currt);
+			main_targets_.push_back(currt);
 		} else {
-			BOOST_FOREACH(Target*& t, currt->dependent_targets) {
-				if (--t->inord == 0)
+			BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
+				if (--t->inord_ == 0)
 					lvqueue.push(t);
 			}
 		}
@@ -185,10 +185,10 @@ void DependencyGraph::topological_sort(const unordered_map<string, Target*>& nod
 		Target* t = p.second;
 		assert(t != NULL);
 
-		if (t->inord > 0)
+		if (t->inord_ > 0)
 			throw CircularDependency();
 		else
-			t->inord = t->dependencies.size();
+			t->inord_ = t->dependencies_.size();
 	}
 }
 

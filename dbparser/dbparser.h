@@ -1,5 +1,5 @@
-#ifndef _DBPARSER_
-#define _DBPARSER_
+#ifndef DBPARSER_DBPARSER_H_
+#define DBPARSER_DBPARSER_H_
 
 #include <string>
 #include <istream>
@@ -25,9 +25,9 @@ class CircularDependency : public std::runtime_error {
 class DependencyGraph {
 	public:
 		/** Holds pointers to Target, which are not dependency of any other Target. */
-		std::vector<Target*> main_targets;
+		std::vector<Target*> main_targets_;
 		/** Holds pointers to Target, which are not dependant of any other Target. */
-		std::vector<Target*> leaf_targets;
+		std::vector<Target*> leaf_targets_;
 
 		/**
 		 * Builds DependencyGraph from MakefileDB.
@@ -43,8 +43,8 @@ class DependencyGraph {
 		DependencyGraph(int fd);
 		virtual ~DependencyGraph();
 	protected:
-		void init(std::istream& ins);
-		void topological_sort(const std::unordered_map<std::string, Target*>& targets);
+		void Init(std::istream& ins);
+		void TopologicalSort(const std::unordered_map<std::string, Target*>& targets);
 };
 
 /** Holds single target together with receipes to build. */
@@ -52,26 +52,26 @@ class Target {
 	friend class DependencyGraph;
 	public:
 		/** Integer value unique to each Target. */
-		const int id;
+		const int kId_;
 		/** Name of a Target as it occurs in MakefileDB. */
-		const std::string name;
+		const std::string kName_;
 
 		/**
 		 * Registers another target as a dependency of this one.
 		 * @param target pointer to newly added dependency Target */
-		void addDependency(Target* target);
+		void AddDependency(Target* target);
 
 		/**
 		 * Target constructor.
-		 * @param _name reference to constant string holding new Target name
+		 * @param name reference to constant string holding new Target name
 		 */
-		Target(const std::string& _name);
+		Target(const std::string& name);
 		virtual ~Target();
 	protected:
-		std::list<Target*> dependent_targets;
-		std::list<Target*> dependencies;
-		int inord;
+		std::list<Target*> dependent_targets_;
+		std::list<Target*> dependencies_;
+		int inord_;
 		static int idcounter;
 };
 
-#endif /* _DBPARSER_ */
+#endif  // DBPARSER_DBPARSER_H_

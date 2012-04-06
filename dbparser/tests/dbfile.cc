@@ -1,6 +1,6 @@
 #include <cstdio>
 
-#include "../dbparser.hpp"
+#include "../dbparser.h"
 
 int main(int argc, char *argv[]) {
 
