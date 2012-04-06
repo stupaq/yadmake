@@ -32,7 +32,9 @@ $(ALL) : % : %.o $(OBJECTS)
 
 clean:
 	-rm -f *.o $(ALL) $(ALLOBJECTS) $(DEPENDS)
+	-rm -rf gendocs/*
 
-debug:
-	@echo $(OBJECTS)
+gendocs:
+	doxygen doxygen.conf
 
+.PHONY: gendocs
