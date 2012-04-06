@@ -60,12 +60,13 @@ void dispatcher(){
 	// read data about available computers
 
 	// connect with them (check connection or sth)
+	
+   // init free_comp
+   init_free_comp(free_comp);
+
 
 	// get graph
 	DependencyGraph dependency_graph(0);
-
-	// init free_comp
-   init_free_comp(free_comp);
 
 	// init targets
 
@@ -111,8 +112,8 @@ void dispatcher(){
 		}
 		--child_count;
 
-		comp.erase(who);
 		free_comp.push_back(comp[who]);
+		comp.erase(who);
 
 		Target *t = targ[who];
 		targ.erase(who);
