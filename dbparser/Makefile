@@ -1,16 +1,40 @@
-all: main
+# versatile Makefile
+CXX			:= g++
+CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams
+LDFLAGS		:= -Wall -lboost_iostreams
 
-main: main.o exec.o err.h commands.o
-	g++ main.o exec.o commands.o -Wall -ggdb -o main
+# sources
+SOURCES		:= $(shell find -name "*.cc")
+# objects containing main() definition
+MAINOBJECTS	:= $(subst .cc,.o,$(shell grep -l "int main" $(SOURCES)))
+# executables (linked from MAINOBJECTS)
+ALL			:= $(subst .o,,$(MAINOBJECTS))
+# submakefiles
+DEPENDS		:= $(subst .cc,.d,$(SOURCES))
+# all objects
+ALLOBJECTS	:= $(subst .cc,.o,$(SOURCES))
+# objects not containing main() definition
+OBJECTS		:= $(filter-out $(MAINOBJECTS),$(ALLOBJECTS)) 
 
-commands.o: commands.cpp commands.h
-	g++ commands.cpp commands.h -c -Wall -ggdb -std=c++0x 
+all: $(DEPENDS) $(ALL)
 
-main.o: main.cpp
-	g++ main.cpp -c -Wall -ggdb
+# create submakefiles
+$(DEPENDS) : %.d : %.cc
+	$(CXX) $(CXXFLAGS) -MM $< > $@
+	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< >> $@
 
-exec.o: exec.cpp
-	g++ exec.cpp -c -Wall -ggdb
+# link objects
+$(ALL) : % : %.o $(OBJECTS)
+	$(CXX) -s $(LDFLAGS) -o $@ $^
+
+# include submakefiles
+-include $(DEPENDS)
 
 clean:
-	rm *.o main
+	-rm -f *.o $(ALL) $(ALLOBJECTS) $(DEPENDS)
+	-rm -rf gendocs/*
+
+gendocs:
+	doxygen doxygen.conf
+
+.PHONY: gendocs

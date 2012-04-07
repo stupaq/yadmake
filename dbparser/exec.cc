@@ -25,9 +25,9 @@ string exec(const string& programme, const vector<string>& arguments) {
 
 	char** args = get_args(arguments);
 	const char* prog = programme.c_str();
-	
+
 	int conn[2];
-	if (pipe(conn) == -1)				syserr();
+	if (pipe(conn) == -1)				syserr("pipe error");
 	
 	int buf_size = 10;	// TODO: ile najlepiej?
 	// Po tyle znakow czytamy stdout i dodajemy do wynikowego stringa.
@@ -35,25 +35,26 @@ string exec(const string& programme, const vector<string>& arguments) {
 	int bytes = 0;
 	string result = "";
 	
+	
 	switch (fork()) {
 		case -1:
-			syserr();
+			syserr("fork error");
 
 		case 0:
-			if (close(conn[0]) == -1)	syserr();
-			if (close(1) == -1)			syserr();
-			if (dup(conn[1]) != 1)		syserr();
+			if (close(conn[0]) == -1)	syserr("close error");
+			if (close(1) == -1)			syserr("close error");
+			if (dup(conn[1]) != 1)		syserr("dup error");
 			execvp(prog, args);
-			syserr();
+			syserr("execvp error");
 
 		default:
-			if (close(conn[1]) == -1)	syserr();
+			if (close(conn[1]) == -1)	syserr("close error");
 			while ((bytes = read(conn[0], buf, buf_size)) > 1) {
 				buf[bytes] = '\0';
 				result += buf;
 			}
-			if (bytes == -1)			syserr();
-			if (close(conn[0]) == -1)	syserr();
+			if (bytes == -1)			syserr("read error");
+			if (close(conn[0]) == -1)	syserr("close error");
 			return result;
 	}
 }
