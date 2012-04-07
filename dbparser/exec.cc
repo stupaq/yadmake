@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
+#include <utility>
 #include "err.h"
 #include "exec.h"
 
@@ -25,31 +26,38 @@ char** get_args(const vector<string>& v_args) {
 	return args;
 }
 
-string exec(const string& programme, const vector<string>& arguments) {
+std::pair<string, string> exec(const string& programme, const vector<string>& arguments) {
 
 	char** args = get_args(arguments);
 	const char* prog = programme.c_str();
 	string result = "";
+	string result_err = "";
 	string line = "";
 
 	int conn[2];
-	if (pipe(conn) == -1)				syserr("pipe error");
+	int conn_err[2];
+	if (pipe(conn) == -1)			syserr("pipe error");
+	if (pipe(conn_err) == -1)		syserr("pipe error");
 	
 	switch (fork()) {
 		case -1:
 			syserr("fork error");
 
 		case 0:
-			/* set conn[1] as stdout */
-			if (close(conn[0]) == -1)	syserr("close error");
-			if (close(1) == -1)			syserr("close error");
-			if (dup(conn[1]) != 1)		syserr("dup error");
+			/* set conn[1] as stdout and conn_err[1] as stderr */
+			if (close(conn[0]) == -1)		syserr("close error");
+			if (close(conn_err[0]) == -1)	syserr("close error");
+			if (close(1) == -1)				syserr("close error");
+			if (close(2) == -1)				syserr("close error");
+			if (dup(conn[1]) != 1)			syserr("dup error");
+			if (dup(conn_err[1]) != 2)		syserr("dup error");
 			/* execute the programme */
 			execvp(prog, args);
 			syserr("execvp error");
 
 		default:
-			if (close(conn[1]) == -1)	syserr("close error");
+			if (close(conn[1]) == -1)		syserr("close error");
+			if (close(conn_err[1]) == -1)	syserr("close error");
 
 			/* read stdout of the programme line by line
 			 * @and save it in result
@@ -57,13 +65,21 @@ string exec(const string& programme, const vector<string>& arguments) {
 			file_descriptor_source fdsource(conn[0], close_handle);
 			stream_buffer<file_descriptor_source> fdstream(fdsource);
 			istream ins(&fdstream);
-			while (ins) {
-				getline(ins, line);
+			while (getline(ins, line)) {
 				result += line;
 				result += "\n";
 			}
 
-			return result;
+			/* the same with stderr */
+			file_descriptor_source fdsource_err(conn_err[0], close_handle);
+			stream_buffer<file_descriptor_source> fdstream_err(fdsource_err);
+			istream ins_err(&fdstream_err);
+			while (getline(ins_err, line)) {
+				result_err += line;
+				result_err += "\n";
+			}
+
+			return std::make_pair(result, result_err);
 	}
 }
 

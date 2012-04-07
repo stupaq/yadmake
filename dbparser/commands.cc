@@ -4,12 +4,12 @@
 #include <list>
 #include <string>
 #include <stdexcept>
+#include <utility>
 #include <boost/foreach.hpp>
 
 using std::vector;
 using std::list;
 using std::string;
-#include <iostream> // TODO: usunac
 
 /* Shares targets into levels. Leafs have level 0 and so on. */
 vector<vector<Target*> > get_levels(DependencyGraph* graph) {
@@ -52,7 +52,12 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
       options.push_back(it->kName_);
    }
 
-   string commands = exec("make", options);
+   std::pair<string, string> exec_result = exec("make", options);
+   string commands = exec_result.first;
+   string commands_err = exec_result.second;
+
+   if (commands_err !=  "")
+	   throw std::runtime_error(commands_err);
 
    size_t pos = 0;
    string delima = "make: `blah' is up to date.";

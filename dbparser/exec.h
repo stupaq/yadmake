@@ -3,11 +3,13 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 
 /* Executes programme with args as arguments
- * @and returns stdout of this programme as a string.
+ * @and returns a pair consisting of stdout and stderr
+ * @of this programme as strings.
  */
-extern std::string exec(const std::string& programme,
+extern std::pair<std::string, std::string> exec(const std::string& programme,
 		const std::vector<std::string>& arguments);
 
 #endif	// EXEC_EXEC_H_
