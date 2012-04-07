@@ -11,6 +11,7 @@
 
 class Target;
 class DependencyGraph;
+class Computer;
 
 /**
  * An exception thrown by DependencyGraph if compilation order
@@ -56,6 +57,13 @@ class DependencyGraph {
 /** Holds single target together with receipes to build. */
 class Target {
 	friend class DependencyGraph;
+	friend std::vector<std::vector<Target*> > get_levels(DependencyGraph* graph);
+	friend void count_one_level(const std::vector<std::string>& basics,
+			const std::string& delimiter, const std::vector<Target*>& to_make,
+			const std::vector<Target*>& not_to_make);
+	friend void dispatcher();
+	friend int realize(Target * t, Computer * c);
+	friend void mark_realized(Target * t, std::vector<Target*> & targets);
 	public:
 		/** Integer value unique to each Target. */
 		const int kId_;
@@ -77,6 +85,7 @@ class Target {
 		std::list<Target*> dependent_targets_;
 		std::list<Target*> dependencies_;
 		int inord_;
+		std::string command_;
 		static int idcounter;
 };
 
