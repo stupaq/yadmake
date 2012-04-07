@@ -3,12 +3,16 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <boost/iostreams/device/file_descriptor.hpp>
+#include <boost/iostreams/stream.hpp>
 #include "err.h"
 #include "exec.h"
 
-using std::string;
-using std::vector;
+using namespace std;
+using namespace boost;
+using namespace boost::iostreams;
 
+/* Creates arguments suitable for command line from a vector */
 char** get_args(const vector<string>& v_args) {
 	char** args = new char*[v_args.size() + 1];
 	for (size_t i = 0; i < v_args.size(); ++i) {
@@ -25,36 +29,40 @@ string exec(const string& programme, const vector<string>& arguments) {
 
 	char** args = get_args(arguments);
 	const char* prog = programme.c_str();
+	string result = "";
+	string line = "";
 
 	int conn[2];
 	if (pipe(conn) == -1)				syserr("pipe error");
-	
-	int buf_size = 10;	// TODO: ile najlepiej?
-	// Po tyle znakow czytamy stdout i dodajemy do wynikowego stringa.
-	char buf[buf_size + 1];
-	int bytes = 0;
-	string result = "";
-	
 	
 	switch (fork()) {
 		case -1:
 			syserr("fork error");
 
 		case 0:
+			/* set conn[1] as stdout */
 			if (close(conn[0]) == -1)	syserr("close error");
 			if (close(1) == -1)			syserr("close error");
 			if (dup(conn[1]) != 1)		syserr("dup error");
+			/* execute the programme */
 			execvp(prog, args);
 			syserr("execvp error");
 
 		default:
 			if (close(conn[1]) == -1)	syserr("close error");
-			while ((bytes = read(conn[0], buf, buf_size)) > 1) {
-				buf[bytes] = '\0';
-				result += buf;
+
+			/* read stdout of the programme line by line
+			 * @and save it in result
+			 */
+			file_descriptor_source fdsource(conn[0], close_handle);
+			stream_buffer<file_descriptor_source> fdstream(fdsource);
+			istream ins(&fdstream);
+			while (ins) {
+				getline(ins, line);
+				result += line;
+				result += "\n";
 			}
-			if (bytes == -1)			syserr("read error");
-			if (close(conn[0]) == -1)	syserr("close error");
+
 			return result;
 	}
 }
