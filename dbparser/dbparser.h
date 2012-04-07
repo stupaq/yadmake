@@ -99,7 +99,7 @@ class Target {
 		std::list<Target*> dependent_targets_;
 		std::list<Target*> dependencies_;
 		int inord_;
-		std::string command_;
+		std::vector<std::string> commands_;
 		bool is_target_;
 		static int idcounter;
 };
