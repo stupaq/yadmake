@@ -35,16 +35,16 @@ Target::~Target() {
 }
 
 
-DependencyGraph::DependencyGraph(istream& ins) {
-	Init(ins);
+DependencyGraph::DependencyGraph(istream& is) {
+	Init(is);
 }
 
 DependencyGraph::DependencyGraph(int fd) {
 	file_descriptor_source fdsource(fd, close_handle);
 	stream_buffer<file_descriptor_source> fdstream(fdsource);
-	istream ins(&fdstream);
+	istream is(&fdstream);
 
-	Init(ins);
+	Init(is);
 }
 
 DependencyGraph::~DependencyGraph() {
@@ -70,7 +70,7 @@ static inline Target*& access(unordered_map<string, Target*>& map,
 	return target;
 }
 
-void DependencyGraph::Init(istream& ins) {
+void DependencyGraph::Init(istream& is) {
 	/* parser internal flags */
 #define EMPTY_FLAG 1
 
@@ -84,13 +84,13 @@ void DependencyGraph::Init(istream& ins) {
 
 	string line = "";
 	/* skip until files tag */
-	while (ins && line.find("# Files") != 0)
-		getline(ins, line);
+	while (is && line.find("# Files") != 0)
+		getline(is, line);
 
 	/* parse rules */
 	int skip_flags = 0;
-	while (ins) {
-		getline(ins, line);
+	while (is) {
+		getline(is, line);
 
 		trim(line);
 		int len = line.length();
@@ -184,7 +184,7 @@ void DependencyGraph::TopologicalSort() {
 	}
 }
 
-void DependencyGraph::DumpMakefile() {
+void DependencyGraph::DumpMakefile(ostream& os) {
 	queue<Target*> lvqueue;
 	BOOST_FOREACH(Target*& t, leaf_targets_) {
 		lvqueue.push(t);
@@ -194,11 +194,13 @@ void DependencyGraph::DumpMakefile() {
 		Target* currt = lvqueue.front();
 		lvqueue.pop();
 
-		cerr << currt->kName_ << ":";
-		BOOST_FOREACH(Target*& t, currt->dependencies_) {
-			cerr << " " << t->kName_;
-		}
-		cerr << endl;
+		os << currt->kName_ << ":";
+		BOOST_FOREACH(Target*& t, currt->dependencies_)
+			os << " " << t->kName_;
+		os << '\n';
+		BOOST_FOREACH(string& s, currt->commands_)
+			os << '\t' << s << '\n';
+		os << endl;
 
 		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
 			if (--t->inord_ == 0)

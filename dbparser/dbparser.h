@@ -43,21 +43,25 @@ class DependencyGraph {
 		
 		/**
 		 * Builds DependencyGraph from MakefileDB.
-		 * @param ins reference to std::istream used to read MakefileDB
+		 * @param is reference to std::istream used to read MakefileDB
 		 * @throws CircularDependency
 		 */
-		DependencyGraph(std::istream& ins);
+		DependencyGraph(std::istream& is);
 		/**
 		 * Builds DependencyGraph from MakefileDB.
 		 * @param fd file descriptor used to read MakefileDB
 		 * @throws CircularDependency
 		 */
 		DependencyGraph(int fd);
+		/**
+		 * Dumps DependencyGraph to given stream in Makefile format.
+		 * @param os output stream
+		 */
+		void DumpMakefile(std::ostream& os);
 		virtual ~DependencyGraph();
-		void DumpMakefile();
 	protected:
 		std::vector<Target*> all_targets_;
-		void Init(std::istream& ins);
+		void Init(std::istream& is);
 		void TopologicalSort();
 		void RemoveNotMarkedTargets();
 		void DeleteBlah();
