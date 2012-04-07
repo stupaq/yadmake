@@ -9,6 +9,7 @@
 using std::vector;
 using std::list;
 using std::string;
+#include <iostream> // TODO: usunac
 
 /* Shares targets into levels. Leafs have level 0 and so on. */
 vector<vector<Target*> > get_levels(DependencyGraph* graph) {
@@ -76,7 +77,9 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
       	pos = delima_pos + delima.length() + 1;
 	  else
       	pos = delimb_pos + delimb.length() + 1;
-      it->command_ = command;
+
+	  if (command.substr(0, 6) != "make: ")
+      	it->command_ = command;
    }
 }
 
