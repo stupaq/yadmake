@@ -36,6 +36,12 @@ class DependencyGraph {
 		void ReinitInord();
 
 		/**
+		 * If targets is not empty leaves in graph only targets
+		 * and their subtrees.
+		 */
+		void TrimToTargets(std::vector<std::string> targets);
+		
+		/**
 		 * Builds DependencyGraph from MakefileDB.
 		 * @param ins reference to std::istream used to read MakefileDB
 		 * @throws CircularDependency
@@ -52,6 +58,8 @@ class DependencyGraph {
 		std::vector<Target*> all_targets_;
 		void Init(std::istream& ins);
 		void TopologicalSort();
+		void RemoveNotMarkedTargets();
+		void DeleteBlah();
 };
 
 /** Holds single target together with receipes to build. */
@@ -76,6 +84,12 @@ class Target {
 		void AddDependency(Target* target);
 
 		/**
+		 * Sets is_target_ to if_target recursively.
+		 * @If is_target_ is already correct, returns.
+		 */
+		void MarkSubtreeIfTarget(bool if_target);
+
+		/**
 		 * Target constructor.
 		 * @param name reference to constant string holding new Target name
 		 */
@@ -86,6 +100,7 @@ class Target {
 		std::list<Target*> dependencies_;
 		int inord_;
 		std::string command_;
+		bool is_target_;
 		static int idcounter;
 };
 
