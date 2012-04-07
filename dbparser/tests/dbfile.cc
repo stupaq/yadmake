@@ -1,21 +1,26 @@
 #include <cstdio>
 
+#include <vector>
+#include <string>
+#include <iostream>
+#include <queue>
+
 #include "../dbparser.h"
+#include "../commands.h"
 
-int main(int argc, char *argv[]) {
+using namespace std;
 
-	if (argc != 2)
-		return 1;
+int main() {
 
-	FILE* fp = fopen(argv[1], "r");
+	DependencyGraph dg(cin);
+	vector<string> b;
+	b.push_back("make");
+	string d = "blah";
+	count_commands(&dg, b, d);
+	cerr << "# Generated makefile:" << endl;
 
-	if (fp) {
-		int pipe = fileno(fp);
-		DependencyGraph dg(pipe);
-	} else
-		return 1;
+	dg.DumpMakefile();
 
-	pclose(fp);
 	return 0;
 }
 

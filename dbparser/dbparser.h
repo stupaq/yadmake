@@ -54,6 +54,7 @@ class DependencyGraph {
 		 */
 		DependencyGraph(int fd);
 		virtual ~DependencyGraph();
+		void DumpMakefile();
 	protected:
 		std::vector<Target*> all_targets_;
 		void Init(std::istream& ins);

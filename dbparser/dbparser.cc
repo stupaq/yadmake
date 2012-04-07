@@ -184,3 +184,27 @@ void DependencyGraph::TopologicalSort() {
 	}
 }
 
+void DependencyGraph::DumpMakefile() {
+	queue<Target*> lvqueue;
+	BOOST_FOREACH(Target*& t, leaf_targets_) {
+		lvqueue.push(t);
+	}
+
+	while (!lvqueue.empty()) {
+		Target* currt = lvqueue.front();
+		lvqueue.pop();
+
+		cerr << currt->kName_ << ":";
+		BOOST_FOREACH(Target*& t, currt->dependencies_) {
+			cerr << " " << t->kName_;
+		}
+		cerr << endl;
+
+		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
+			if (--t->inord_ == 0)
+				lvqueue.push(t);
+		}
+	}
+
+}
+
