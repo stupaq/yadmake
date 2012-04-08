@@ -8,16 +8,18 @@
 #include <string>
 #include <boost/foreach.hpp>
 #include <string>
-#include "dbparser.h"
 #include <stdio.h>
-
+#include "dbparser.h"
+#include "err.h"
 
 void error(){
   fprintf(stderr,"error\n");
   exit(1);
 }
 
-/* bierze target, wykonuje wszystkie komendy w command */
+/* temporary,
+ * will be replaced,
+ * executes all Targets commands */
 inline int Realize(Target * t, RemoteWorker * c){
 
   BOOST_FOREACH(std::string s, t->commands_)
@@ -30,7 +32,9 @@ inline int Realize(Target * t, RemoteWorker * c){
  * check whether dependent targets are ready to realize,
  * add them to ready_targets */
 inline void MarkRealized(Target * t, std::vector<Target*> & ready_targets){
-
+  
+  if (t == NULL)
+    syserr("MarkRealized target is NULL");
   BOOST_FOREACH(Target * i, t->dependent_targets_){
     --(i->inord_);
     if (i->inord_==0)
@@ -67,13 +71,12 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
 
       switch (who = fork()){
         case	-1:
+          syserr("fork erorr");
           error();
           break;
         case 	 0: 
-          if(Realize(t, c)!=0){
-            error();
-          }
-          exit(0);
+          Realize(t, c);
+          return ;
           break;
         default:	
           ++child_count;
@@ -88,7 +91,7 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
     pid_t who = wait(&status);
 
     if (status!=0){
-      error();
+      syserr("wait error");
     }
     --child_count;
 
