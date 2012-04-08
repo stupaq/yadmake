@@ -4,22 +4,22 @@ CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams
 LDFLAGS		:= -Wall -lboost_iostreams
 
 # sources
-SOURCES		:= $(shell find -name "*.cpp")
+SOURCES		:= $(shell find -name "*.cc")
 # objects containing main() definition
-MAINOBJECTS	:= $(subst .cpp,.o,$(shell grep -l "int main" $(SOURCES)))
+MAINOBJECTS	:= $(subst .cc,.o,$(shell grep -l "int main" $(SOURCES)))
 # executables (linked from MAINOBJECTS)
 ALL			:= $(subst .o,,$(MAINOBJECTS))
 # submakefiles
-DEPENDS		:= $(subst .cpp,.d,$(SOURCES))
+DEPENDS		:= $(subst .cc,.d,$(SOURCES))
 # all objects
-ALLOBJECTS	:= $(subst .cpp,.o,$(SOURCES))
+ALLOBJECTS	:= $(subst .cc,.o,$(SOURCES))
 # objects not containing main() definition
 OBJECTS		:= $(filter-out $(MAINOBJECTS),$(ALLOBJECTS)) 
 
 all: $(DEPENDS) $(ALL)
 
 # create submakefiles
-$(DEPENDS) : %.d : %.cpp
+$(DEPENDS) : %.d : %.cc
 	$(CXX) $(CXXFLAGS) -MM $< > $@
 	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< >> $@
 
