@@ -90,10 +90,12 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
 	  string delim = "\n";
 	  size_t c_pos = 0;
 	  while ((delim_pos = command.find(delim, c_pos)) != string::npos) {
-		  string to_push = command.substr(c_pos, delim_pos - c_pos);
-		  if (to_push != "")
+		  string to_push = command.substr(c_pos, delim_pos + delim.length() - c_pos);
+		  if (to_push != "") {
 		  	it->commands_.push_back(to_push);
-		  c_pos = delim_pos + delim.length();
+		    c_pos = delim_pos + delim.length();
+		  }
+		  else c_pos++;
 	  }
    }
 }
