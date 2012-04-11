@@ -54,8 +54,8 @@ DependencyGraph::~DependencyGraph() {
 	}
 }
 
-void DependencyGraph::ReinitInord() {
-	BOOST_FOREACH(Target*& t, all_targets_) {
+void DependencyGraph::ReinitInord() const {
+	BOOST_FOREACH(Target* t, all_targets_) {
 		if (t) {
 			t->inord_ = t->dependencies_.size();
 		}

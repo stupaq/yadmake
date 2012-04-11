@@ -28,9 +28,9 @@ inline int Realize(Target * t, RemoteWorker * c){
   return 0;
 }
 
-/* mark target as realized, 
- * check whether dependent targets are ready to realize,
- * add them to ready_targets */
+/** mark target as realized, 
+ *  check whether dependent targets are ready to realize,
+ *  add them to ready_targets */
 inline void MarkRealized(Target * t, std::vector<Target*> & ready_targets){
   
   if (t == NULL)
@@ -57,6 +57,7 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
   child_count = 0;
 
   // make sure inord is properly initialized
+  dependency_graph.ReinitInord();
 
   while(!ready_targets.empty() || child_count > 0){
 

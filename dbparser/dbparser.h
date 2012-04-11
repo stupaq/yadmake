@@ -32,7 +32,7 @@ class DependencyGraph {
 		/**
 		 * Initiates inord of each Target with number of dependencies.
 		 */
-		void ReinitInord();
+		void ReinitInord() const;
 
 		/**
 		 * If targets is not empty leaves in graph only targets
