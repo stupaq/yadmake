@@ -13,7 +13,7 @@ class SystemError : public std::exception {
 };
 
 // Throws SystemError.
-extern void syserr(const char* message) throw (SystemError) {
+extern inline void syserr(const char* message) throw (SystemError) {
 	fprintf(stderr, "%s\nERRNO: %d\n", message, errno);
 	throw SystemError();
 }

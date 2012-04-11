@@ -7,11 +7,10 @@
 #include <stdexcept>
 #include <vector>
 #include <unordered_map>
-
+#include "remote_worker.h"
 
 class Target;
 class DependencyGraph;
-class Computer;
 
 /**
  * An exception thrown by DependencyGraph if compilation order
@@ -74,9 +73,11 @@ class Target {
 	friend void count_one_level(const std::vector<std::string>& basics,
 			const std::string& delimiter, const std::vector<Target*>& to_make,
 			const std::vector<Target*>& not_to_make);
-	friend void dispatcher();
-	friend int realize(Target * t, Computer * c);
-	friend void mark_realized(Target * t, std::vector<Target*> & targets);
+
+	friend void Dispatcher(const DependencyGraph & dependency_graph,
+      std::vector<RemoteWorker *> free_workers);
+	friend int Realize(Target * t, RemoteWorker * c);
+	friend void MarkRealized(Target * t, std::vector<Target*> & targets);
 	public:
 		/** Integer value unique to each Target. */
 		const int kId_;
