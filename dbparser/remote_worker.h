@@ -2,7 +2,9 @@
 #ifndef _REMOTEWORKER_
 #define _REMOTEWORKER_
 
-class RemoteWorker{
+struct RemoteWorker{
+  std::string host;
+  std::string pass;
 };
 
 #endif
