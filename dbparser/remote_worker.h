@@ -23,7 +23,10 @@ class RemoteWorker{
     void realize(std::vector<std::string> commands)
 
 //creates ssh connection
+//this should be run at he beginning of the dispatcher function ???
     void connect_to();
+
+    void close_connection();
 
   private:
     const char * username;
@@ -32,7 +35,6 @@ class RemoteWorker{
     int port;
     ssh_channel channel;
     
-    void close_connection();
     int open_channel();
 
 //run a single remote command    
