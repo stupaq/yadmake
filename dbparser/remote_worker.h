@@ -31,7 +31,7 @@ class RemoteWorker{
   private:
     const char * username;
     const char * password;
-    ssh_session my_session;
+    ssh_session session;
     int port;
     ssh_channel channel;
     
