@@ -22,14 +22,8 @@ void error(){
  * executes all Targets commands */
 inline int Realize(Target * t, RemoteWorker * c){
   
-  std::string ssh_command = "ssh " + c->host;
-
-  system(ssh_command.c_str());
-
   BOOST_FOREACH(std::string s, t->commands_)
     system(s.c_str());
-  
-  system("exit");
 
   return 0;
 }
@@ -81,7 +75,8 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
           error();
           break;
         case 	 0: 
-          Realize(t, c);
+          //Realize(t, c);
+          c->realize(t->commands_);
           return ;
           break;
         default:	

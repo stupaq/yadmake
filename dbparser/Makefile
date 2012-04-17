@@ -1,7 +1,7 @@
 # versatile Makefile
 CXX			:= g++
-CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams
-LDFLAGS		:= -Wall -lboost_iostreams
+CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams -lssh
+LDFLAGS		:= -Wall -lboost_iostreams -lssh
 
 # sources
 SOURCES		:= $(shell find -name "*.cc")

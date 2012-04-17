@@ -1,14 +1,17 @@
+
+#ifndef _REMOTEWORKER_
+#define _REMOTEWORKER_
+
 #include <string>
 #include <istream>
 #include <libssh/libssh.h>
 #include <stdlib.h>
 #include <stdio.h> 
+#include <stdexcept>
 
-#ifndef _REMOTEWORKER_
-#define _REMOTEWORKER_
-
+class NoConnection : public std::runtime_error {
 public:
-NoConnection(std::string name) : std::runtime_error("connection to ", name, " failed") {}
+NoConnection(std::string name) : std::runtime_error("connection to " + name + " failed") {}
 };
 
 class RemoteWorker{
@@ -23,13 +26,12 @@ class RemoteWorker{
 //creates ssh connection
 //this should be run at he beginning of the dispatcher function ???
     void connect_to();
-
-    void close_connection();
+    void disconnect();
 
   private:
     const char * username;
     const char * password;
-    ssh_session my_session;
+    ssh_session my_ssh_session;
     int port;
     ssh_channel channel;
     
@@ -42,3 +44,5 @@ class RemoteWorker{
     int read_results();
   
 };
+
+#endif
