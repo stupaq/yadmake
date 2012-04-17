@@ -20,7 +20,7 @@ class RemoteWorker{
     RemoteWorker(std::string name);
 
 //realize commands to crate a target
-    void realize(std::vector<std::string> commands)
+    void realize(std::vector<std::string> commands);
 
 //creates ssh connection
 //this should be run at he beginning of the dispatcher function ???
