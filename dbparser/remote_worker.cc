@@ -11,30 +11,30 @@
 
 
 void RemoteWorker::close_connection() {
-  ssh_disconnect(my_ssh_session);
-  ssh_free(my_ssh_session);
+  ssh_disconnect(session);
+  ssh_free(session);
 }
 
 void RemoteWorker::connect_to() {
   int rc;
   
-  my_ssh_session = ssh_new();
-  if (my_ssh_session == NULL)
+  session = ssh_new();
+  if (session == NULL)
     syserr("ssh_new");
 
-  ssh_options_set(my_ssh_session, SSH_OPTIONS_HOST, name);
-  ssh_options_set(my_ssh_session, SSH_OPTIONS_PORT, &port);
-  ssh_options_set(my_ssh_session, SSH_OPTIONS_USER, username);
+  ssh_options_set(session, SSH_OPTIONS_HOST, name);
+  ssh_options_set(session, SSH_OPTIONS_PORT, &port);
+  ssh_options_set(session, SSH_OPTIONS_USER, username);
 
   
-  rc = ssh_connect(my_ssh_session);
+  rc = ssh_connect(session);
   if (rc != SSH_OK)
   {
-    ssh_free(my_ssh_session);
+    ssh_free(session);
     throw NoConnection(name);
   }
   
-  rc = ssh_userauth_password(my_ssh_session, NULL, password);
+  rc = ssh_userauth_password(session, NULL, password);
   if (rc != SSH_AUTH_SUCCESS)
   {
     syserr("Error authenticating with password");
