@@ -1,49 +1,52 @@
 #include <string>
 #include <istream>
-#include <libssh/libssh.h>
 #include <stdlib.h>
 #include <stdio.h> 
+#include <stdexcept>
+#include <libssh/libssh.h>
 
 #ifndef _REMOTEWORKER_
 #define _REMOTEWORKER_
 
 class NoConnection : public std::runtime_error {
 public:
-NoConnection(std::string name) : std::runtime_error("connection to ", name, " failed") {}
+NoConnection() : std::runtime_error("connection  failed") {}
 };
 
 
 class RemoteWorker{
   public:
-    std::string name;
+    const char * name;
     
-    RemoteWorker(std::string name);
+    RemoteWorker(const char * name, char * password, char * username);
 
-//realize commands to crate a target
-    void realize(std::vector<std::string> commands);
+    RemoteWorker(const char * name, char * password);
+
+//run commands to create a target
+    void realize(std::vector<std::string> commands, std::string path);
 
 //creates ssh connection
-//this should be run at he beginning of the dispatcher function ???
     void connect_to();
 
     void close_connection();
 
   private:
-    const char * username;
-    const char * password;
+    char * password;
+
+    char * username;
+
     ssh_session session;
     int port;
     ssh_channel channel;
     
     int open_channel();
-
 //run a single remote command    
-    int run_command(std::string command);
+    int run_command(char * command);
     
 // read data displayed by remote command   
     int read_results();
+
   
 };
 
 #endif
-
