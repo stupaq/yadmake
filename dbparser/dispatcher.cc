@@ -9,6 +9,7 @@
 #include <boost/foreach.hpp>
 #include <string>
 #include <stdio.h>
+#include "dispatcher.h"
 #include "dbparser.h"
 #include "err.h"
 
@@ -75,7 +76,8 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
           error();
           break;
         case 	 0: 
-          Realize(t, c);
+//          Realize(t, c);
+          c->realize(t->commands_, "/yadmake/dbparser/test");
           return ;
           break;
         default:	
