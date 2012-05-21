@@ -1,10 +1,11 @@
 #include <vector>
 #include <boost/foreach.hpp>
+
 #include "dispatcher.h"
 #include "remote_worker.h"
 
 int main(){
-  char* user = "md292600";
+  char user[] = "md292600";
   char* password = getpass("Password: ");
   std::vector< RemoteWorker *> free_workers;
   free_workers.push_back(new RemoteWorker("brown01", password, user));
