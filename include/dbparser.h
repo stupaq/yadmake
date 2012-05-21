@@ -1,5 +1,5 @@
-#ifndef DBPARSER_DBPARSER_H_
-#define DBPARSER_DBPARSER_H_
+#ifndef _DBPARSER_H_
+#define _DBPARSER_H_
 
 #include <string>
 #include <istream>
@@ -110,4 +110,4 @@ class Target {
 		static int idcounter;
 };
 
-#endif  // DBPARSER_DBPARSER_H_
+#endif  // _DBPARSER_H_
