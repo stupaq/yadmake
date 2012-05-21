@@ -22,20 +22,20 @@ void error(){
  * will be replaced,
  * executes all Targets commands */
 inline int Realize(Target * t, RemoteWorker * c){
-
+  
   BOOST_FOREACH(std::string s, t->commands_)
     system(s.c_str());
 
   return 0;
 }
 
-/* mark target as realized, 
- * check whether dependent targets are ready to realize,
- * add them to ready_targets */
+/** mark target as realized, 
+ *  check whether dependent targets are ready to realize,
+ *  add them to ready_targets */
 inline void MarkRealized(Target * t, std::vector<Target*> & ready_targets){
   
   if (t == NULL)
-    syserr("MarkRealized target is NULL");
+    syserr("MarkRealized: target is NULL");
   BOOST_FOREACH(Target * i, t->dependent_targets_){
     --(i->inord_);
     if (i->inord_==0)
@@ -53,11 +53,11 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
   // init ready_targets
   ready_targets = dependency_graph.leaf_targets_;
 
-  // (proces dla każdego targetu)
-
+  // (process for each target)
   child_count = 0;
 
   // make sure inord is properly initialized
+  dependency_graph.ReinitInord();
 
   while(!ready_targets.empty() || child_count > 0){
 
@@ -106,17 +106,3 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWork
     MarkRealized(t, ready_targets);
   }
 }
-
-/* tests */
-
-/* realize */
-/*
-   void realize_test(){
-   Target t("t1");
-   RemoteWorker c;
-   t.set_command("echo ala\necho alala\necho ololo");
-   realize(&t, &c);
-
-   }
-   */
-

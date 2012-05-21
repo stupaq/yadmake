@@ -46,7 +46,6 @@ class RemoteWorker{
 // read data displayed by remote command   
     int read_results();
 
-  
 };
 
 #endif

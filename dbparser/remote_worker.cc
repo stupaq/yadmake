@@ -15,6 +15,7 @@ void RemoteWorker::close_connection() {
   ssh_free(session);
 }
 
+<<<<<<< HEAD
 void RemoteWorker::connect_to() {
   int rc;
   

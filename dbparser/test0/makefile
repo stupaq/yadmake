@@ -10,3 +10,6 @@ main: main.o a.o
 
 clean:
 	rm *~ *.o *.d $(ALL) 
+
+blah:
+	@echo blah

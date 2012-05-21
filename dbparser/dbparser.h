@@ -32,7 +32,7 @@ class DependencyGraph {
 		/**
 		 * Initiates inord of each Target with number of dependencies.
 		 */
-		void ReinitInord();
+		void ReinitInord() const;
 
 		/**
 		 * If targets is not empty leaves in graph only targets
@@ -74,7 +74,8 @@ class Target {
 			const std::string& delimiter, const std::vector<Target*>& to_make,
 			const std::vector<Target*>& not_to_make);
 
-	friend void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWorker *> free_workers);
+	friend void Dispatcher(const DependencyGraph & dependency_graph,
+      std::vector<RemoteWorker *> free_workers);
 	friend int Realize(Target * t, RemoteWorker * c);
 	friend void MarkRealized(Target * t, std::vector<Target*> & targets);
 	public:

@@ -6,6 +6,4 @@
 
 void Dispatcher(const DependencyGraph & dependency_graph, std::vector<RemoteWorker * > free_workers);
 
-void realize_test();
-
 #endif
