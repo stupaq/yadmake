@@ -76,7 +76,6 @@ int RemoteWorker::open_channel() {
 
 int RemoteWorker::run_command(char * command) {
 	int rc;
-	int nbytes;
 	rc = open_channel();
 	if (rc != 0)
 		return rc;
@@ -105,12 +104,12 @@ int RemoteWorker::run_command(char * command) {
 
 int RemoteWorker::read_results() {
 	char buffer[256];
-	unsigned int nbytes;
+	int nbytes;
 
 	nbytes = ssh_channel_read(channel, buffer, sizeof(buffer), 0);
 	while (nbytes > 0)
 	{
-		if (fwrite(buffer, 1, nbytes, stdout) != nbytes)
+		if (fwrite(buffer, 1, nbytes, stdout) != (unsigned int) nbytes)
 		{
 			ssh_channel_close(channel);
 			ssh_channel_free(channel);

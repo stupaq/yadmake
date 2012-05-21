@@ -16,7 +16,7 @@ class NoConnection : public std::runtime_error {
 
 class RemoteWorker{
 	public:
-		const char* name;
+		const char * name;
 
 		RemoteWorker(const char * name, char * password, char * username);
 
