@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <vector>
 #include <unordered_map>
+
 #include "remote_worker.h"
 
 class Target;
@@ -90,6 +91,11 @@ class Target {
 		void AddDependency(Target* target);
 
 		/**
+		 * Constructs string containing bash script that executes commands for this target
+		 * @param working_dir string containing path to desired working directory */
+		std::string BuildBashScript(const std::string& working_dir);
+
+		/**
 		 * Sets is_target_ to if_target recursively.
 		 * @If is_target_ is already correct, returns.
 		 */
@@ -104,8 +110,8 @@ class Target {
 	protected:
 		std::list<Target*> dependent_targets_;
 		std::list<Target*> dependencies_;
-		int inord_;
 		std::vector<std::string> commands_;
+		int inord_;
 		bool is_target_;
 		static int idcounter;
 };

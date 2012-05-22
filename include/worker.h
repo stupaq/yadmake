@@ -21,8 +21,8 @@ class Messaging {
 
 class Worker {
 	public:
-		virtual void killBuild() = 0;
-		virtual void buildTarget(Target* target) = 0;
+		virtual void KillBuild() = 0;
+		virtual void BuildTarget(Target* target) = 0;
 };
 
 void do_kill_worker(int s);
@@ -37,16 +37,16 @@ class SshWorker : public Worker {
 		const std::string& working_dir_;
 		Messaging* msg_jobs_;
 		Messaging* msg_parent_;
-		/* next two variables are _not_ properly set in dispatcher process */
+		/* next two variable is _not_ properly set in dispatcher process */
 		ssh::Session* session_;
-		ssh::Channel* commch_;
 		void do_run();
+		int exec(const std::string& comm);
 	public:
 		SshWorker(const std::string& hostname, const std::string& working_dir,
-				const std::string& config_path,	Messaging* msg_parent);
+				Messaging* msg_parent, const std::string& config_path = "");
 		virtual ~SshWorker();
-		void killBuild();
-		void buildTarget(Target* target);
+		void KillBuild();
+		void BuildTarget(Target* target);
 };
 
 #endif  //  _WORKER_H

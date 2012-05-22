@@ -15,14 +15,17 @@ using namespace ssh;
 
 #define UNUSED(x) ((void) (x))
 
+#define EMPTY_READS_NB 50
+#define EMPTY_READS_US 5000
+
 // XXX
 int main() {
 	Target* tg = new Target("abcd");
 	Messaging* m = new Messaging();
-	SshWorker* w = new SshWorker("students", "~/", "", m);
+	SshWorker* w = new SshWorker("students", "~/Downloads/", m);
 
 	m->wait();
-	w->buildTarget(tg);
+	w->BuildTarget(tg);
 
 	Target* t = m->getJob();
 	cerr << tg << " " << t << endl;
@@ -35,77 +38,70 @@ int main() {
 /* ugly: find workaround */
 static SshWorker* currentWorker = NULL;
 
-void do_kill_worker(int s) {
-	UNUSED(s);
+void do_kill_worker(int sig) {
+	if (sig) {
+		if (currentWorker == NULL)
+			throw runtime_error("empty worker");
 
-	if (currentWorker == NULL)
-		throw runtime_error("empty worker");
+		/* EXEC: WORKER */
 
-	/* executes worker */
+		do_kill_build(0);
 
-	do_kill_build(0);
+		/* close connection */
+		currentWorker->session_->disconnect();
+		delete currentWorker->session_;
 
-	/* close connection */
-	currentWorker->commch_->sendEof();
-	currentWorker->commch_->close();
-	delete currentWorker->commch_;
-
-	currentWorker->session_->disconnect();
-	delete currentWorker->session_;
-
-	exit(0);
+		exit(0);
+	}
 }
 
-void do_kill_build(int s) {
-	UNUSED(s);
+void do_kill_build(int sig) {
+	if (sig) {
+		if (currentWorker == NULL)
+			throw runtime_error("empty worker");
 
-	if (currentWorker == NULL)
-		throw runtime_error("empty worker");
-
-	/* executes worker */
-	throw runtime_error("NOT IMPLEMENTED");
+		/* EXEC: WORKER */
+		throw runtime_error("NOT IMPLEMENTED");
+	}
 }
 
-SshWorker::SshWorker(const string& hostname, const string& working_dir, const string& config_path,
-		Messaging* msg_parent) : pid_(-1), hostname_(hostname), working_dir_(working_dir),
-		msg_parent_(msg_parent) {
-	/* executes dispatcher */
+SshWorker::SshWorker(const string& hostname, const string& working_dir,
+		Messaging* msg_parent, const string& config_path) : pid_(-1),
+	hostname_(hostname), working_dir_(working_dir), msg_parent_(msg_parent) {
+		/* EXEC: DISPATCHER */
 
-	msg_jobs_ = new Messaging();
+		msg_jobs_ = new Messaging();
 
-	pid_ = fork();
-	if (pid_ < 0)
-		throw runtime_error("fork() failure");
-	else if (pid_ > 0)
-		return;
+		pid_ = fork();
+		if (pid_ < 0)
+			throw runtime_error("fork() failure");
+		else if (pid_ > 0)
+			return;
 
-	/* executes worker */
-	currentWorker = this;
+		/* EXEC: WORKER */
+		currentWorker = this;
 
-	/* setup */
-	signal(SIGUSR1, &do_kill_build);
-	signal(SIGTERM, &do_kill_worker);
+		/* setup */
+		signal(SIGUSR1, &do_kill_build);
+		signal(SIGTERM, &do_kill_worker);
 
-	/* connect and authenticate */
-	session_ = new Session;
-	session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
-	session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
+		/* connect and authenticate */
+		session_ = new Session;
+		session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
+		session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
 
-	session_->connect();
-	session_->userauthAutopubkey();
+		session_->connect();
+		session_->userauthAutopubkey();
 
-	commch_ = new Channel(*session_);
-	commch_->openSession();
+		/* run main dispatcher */
+		do_run();
 
-	/* run main dispatcher */
-	do_run();
-
-	/* this will dispose all data */
-	exit(0);
-}
+		/* this will dispose all data */
+		exit(0);
+	}
 
 SshWorker::~SshWorker() {
-	/* executes dispatcher */
+	/* EXEC: DISPATCHER */
 	if (pid_ > 0) {
 
 		/* kill worker */
@@ -118,53 +114,70 @@ SshWorker::~SshWorker() {
 	}
 }
 
-void SshWorker::do_run() {
-	static const char exit[] = "exit";
-
+int SshWorker::exec(const string& comm) {
 	char buffer[8092];
-	int r;
+	int buffersz = sizeof(buffer) - 1;
+	int r, ret_val = 0;
+
+	/* unfortunately me must request new chanell each time */
+	Channel commch(*session_);
+	commch.openSession();
+
+	commch.requestExec(comm.c_str());
+	cerr << "EXEC: " << comm << endl;
+
+	commch.sendEof();
+	/* read output */
+	int empty_reads = EMPTY_READS_NB;
+	do {
+		r = commch.readNonblocking(buffer, buffersz);
+		buffer[r] = '\0';
+		if (r > 0) {
+			cout << buffer << endl;
+		} else {
+			--empty_reads;
+			usleep(EMPTY_READS_US);
+		}
+	} while(commch.isOpen() && ! commch.isEof() && empty_reads);
+
+	/* get return value */
+	ret_val = commch.getExitStatus();
+	cerr << "RETVAL: " << ret_val << endl << endl;
+
+	/* close chanell */
+	commch.close();
+
+	return ret_val;
+}
+
+void SshWorker::do_run() {
 
 	/* ready to start */
 	msg_parent_->signal();
 
 	Target* target = msg_jobs_->getJob();
 
-	/* run remote shell and skip message */
-	commch_->requestShell();
-	commch_->read(buffer, sizeof(buffer));
+	/* prepare, send commands and read response */
+	string commands = target->BuildBashScript(working_dir_);
+	int ret_val = exec(commands);
 
-	/* change working dir */
-	// TODO
-
-	// TODO
-	/* write commands one by one */
-	char command[] = "ls\n";
-	commch_->write(command, sizeof(command));
-
-	/* close shell */
-	commch_->write(exit, sizeof(exit));
-
-	cerr << "exited" << endl;
-
-	do {
-		r = commch_->readNonblocking(buffer, sizeof(buffer));
-		if (r > 0)
-			cout << buffer << endl;
-	} while(commch_->isOpen() && ! commch_->isEof());
-
-	msg_parent_->sendJob(target);
+	/* notify that we've done here */
+	if (ret_val == 0)
+		msg_parent_->sendJob(target);
+	else
+		msg_parent_->sendJob(NULL);
 }
 
-void SshWorker::buildTarget(Target* target) {
-	/* executes dispatcher */
+void SshWorker::BuildTarget(Target* target) {
+	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
 		msg_jobs_->sendJob(target);
 	}
 }
 
-void SshWorker::killBuild() {
-	/* executes dispatcher */
+void SshWorker::KillBuild() {
+	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
 		if (pid_ < 0)
@@ -195,15 +208,7 @@ struct msg_job {
 #define msg_size(msg) (sizeof((msg))-sizeof((msg).type))
 
 void Messaging::sendJob(Target* target) {
-	struct msg_job job;
-
-	job.type = 1;
-	job.target = target;
-
-	if (target)
-		cerr << "sending job " << job.target << "to " << msgqid_ << endl;
-	else
-		cerr << "signaling " << msgqid_ << endl;
+	struct msg_job job = {1, target};
 
 	if (msgsnd(msgqid_, &job, msg_size(job), 0) < 0)
 		throw runtime_error("msgsnd() failure");
@@ -212,15 +217,8 @@ void Messaging::sendJob(Target* target) {
 Target* Messaging::getJob() {
 	struct msg_job job;
 
-	cerr << "waiting for job " << msgqid_ << endl;
-
 	if (msg_size(job) != msgrcv(msgqid_, &job, msg_size(job), 0, 0))
 		throw runtime_error("msgrcv() failure");
-
-	if (job.target)
-		cerr << "got job " << job.target << endl;
-	else
-		cerr << "signaled" << endl;
 
 	return job.target;
 }

@@ -34,6 +34,16 @@ Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), in
 Target::~Target() {
 }
 
+std::string Target::BuildBashScript(const std::string& working_dir) {
+	stringstream ss;
+
+	ss << "cd " << working_dir;
+	BOOST_FOREACH(const string& c, commands_) {
+		ss << " && " << c;
+	}
+	return ss.str();
+}
+
 
 DependencyGraph::DependencyGraph(istream& is) {
 	Init(is);
@@ -209,4 +219,3 @@ void DependencyGraph::DumpMakefile(ostream& os) {
 	}
 
 }
-
