@@ -10,9 +10,9 @@
 #include <string>
 #include <stdio.h>
 #include "../include/dispatcher.h"
-#include "../include/dbparser.h"
 #include "../include/err.h"
-#include "../include/worker.h"
+//#include "../include/dbparser.h"
+//#include "../include/worker.h"
 
 void error(){
   fprintf(stderr,"error\n");
