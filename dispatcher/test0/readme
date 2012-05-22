@@ -1,4 +1,0 @@
-
-dmake jest wyzej,
-
-make -pq | ../dmake

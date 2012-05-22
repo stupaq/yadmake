@@ -1,7 +1,7 @@
 # versatile Makefile
-CXX			:= g++
-CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams
-LDFLAGS		:= -Wall -lboost_iostreams
+CXX			:= g++ -I include
+CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams -lssh
+LDFLAGS		:= -Wall -lboost_iostreams -lssh
 
 # sources
 SOURCES		:= $(shell find -name "*.cc")
@@ -31,8 +31,10 @@ $(ALL) : % : %.o $(OBJECTS)
 -include $(DEPENDS)
 
 clean:
-	-rm -f *.o *~ $(ALL) $(ALLOBJECTS) $(DEPENDS)
+	-rm -f *.o $(ALL) $(ALLOBJECTS) $(DEPENDS)
+	-rm -rf gendocs/*
 
-debug:
-	@echo $(OBJECTS)
+gendocs:
+	doxygen doxygen.conf
 
+.PHONY: gendocs
