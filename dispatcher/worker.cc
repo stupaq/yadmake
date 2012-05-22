@@ -13,19 +13,31 @@
 using namespace std;
 using namespace ssh;
 
+#define UNUSED(x) ((void) (x))
+
 // XXX
 int main() {
-	SshWorker* w = new SshWorker("students", "", 0);
-	w->buildTarget(NULL);
+	Target* tg = new Target("abcd");
+	Messaging* m = new Messaging();
+	SshWorker* w = new SshWorker("students", "~/", "", m);
 
-	sleep(10);
+	m->wait();
+	w->buildTarget(tg);
+
+	Target* t = m->getJob();
+	cerr << tg << " " << t << endl;
+
 	delete w;
+	delete m;
+	delete tg;
 }
 
 /* ugly: find workaround */
 static SshWorker* currentWorker = NULL;
 
 void do_kill_worker(int s) {
+	UNUSED(s);
+
 	if (currentWorker == NULL)
 		throw runtime_error("empty worker");
 
@@ -45,21 +57,21 @@ void do_kill_worker(int s) {
 }
 
 void do_kill_build(int s) {
+	UNUSED(s);
+
 	if (currentWorker == NULL)
 		throw runtime_error("empty worker");
 
 	/* executes worker */
-
-	// TODO interrupt current job
+	throw runtime_error("NOT IMPLEMENTED");
 }
 
-SshWorker::SshWorker(const string& hostname, const string& config_path,
-		const int msg_parent) : pid_(-1), hostname_(hostname), msg_dispatcher_(msg_parent) {
+SshWorker::SshWorker(const string& hostname, const string& working_dir, const string& config_path,
+		Messaging* msg_parent) : pid_(-1), hostname_(hostname), working_dir_(working_dir),
+		msg_parent_(msg_parent) {
 	/* executes dispatcher */
 
-	msg_jobs_ = msgget(IPC_PRIVATE, 0777);
-	if (msg_jobs_ < 0)
-		throw runtime_error("msgget() failure");
+	msg_jobs_ = new Messaging();
 
 	pid_ = fork();
 	if (pid_ < 0)
@@ -100,8 +112,7 @@ SshWorker::~SshWorker() {
 		if (kill(pid_, SIGTERM) < 0)
 			throw runtime_error("can't kill worker process");
 
-		if (msgctl(msg_jobs_, IPC_RMID, NULL) < 0)
-			throw runtime_error("msgctl() failure");
+		delete msg_jobs_;
 
 		currentWorker = NULL;
 	}
@@ -111,21 +122,21 @@ void SshWorker::do_run() {
 	static const char exit[] = "exit";
 
 	char buffer[8092];
-	struct msg_job job;
 	int r;
 
-	// TODO
-	// notify that you're ready
+	/* ready to start */
+	msg_parent_->signal();
 
-	// TODO
-	// wait for message with target address
-	get_msg(msg_jobs_, &job);
+	Target* target = msg_jobs_->getJob();
 
-	/* run remote shell */
+	/* run remote shell and skip message */
 	commch_->requestShell();
-	/* skip welcome message */
 	commch_->read(buffer, sizeof(buffer));
 
+	/* change working dir */
+	// TODO
+
+	// TODO
 	/* write commands one by one */
 	char command[] = "ls\n";
 	commch_->write(command, sizeof(command));
@@ -133,24 +144,22 @@ void SshWorker::do_run() {
 	/* close shell */
 	commch_->write(exit, sizeof(exit));
 
+	cerr << "exited" << endl;
+
 	do {
 		r = commch_->readNonblocking(buffer, sizeof(buffer));
 		if (r > 0)
 			cout << buffer << endl;
 	} while(commch_->isOpen() && ! commch_->isEof());
 
-	// TODO
-	// send message with notification
+	msg_parent_->sendJob(target);
 }
 
 void SshWorker::buildTarget(Target* target) {
 	/* executes dispatcher */
 	if(pid_ > 0) {
 
-		struct msg_job job;
-		job.target = target;
-
-		send_msg(msg_jobs_, &job);
+		msg_jobs_->sendJob(target);
 	}
 }
 
@@ -168,13 +177,58 @@ void SshWorker::killBuild() {
 	}
 }
 
-void get_msg(int msgqid, msg_job* job) {
-	if (msg_size(*job) != msgrcv(msgqid, job, msg_size(*job), 0, 0))
-		throw runtime_error("msgrcv() failure");
+Messaging::Messaging() {
+	msgqid_ = msgget(IPC_PRIVATE, 0777);
+	if (msgqid_ < 0)
+		throw runtime_error("msgget() failure");
 }
 
-void send_msg(int msgqid, msg_job* job) {
-	job->type = 1;
-	if (msgsnd(msgqid, job, msg_size(*job), 0) < 0)
+Messaging::~Messaging() {
+	msgctl(msgqid_, IPC_RMID, NULL);
+}
+
+struct msg_job {
+	long type;
+	Target* target;
+};
+
+#define msg_size(msg) (sizeof((msg))-sizeof((msg).type))
+
+void Messaging::sendJob(Target* target) {
+	struct msg_job job;
+
+	job.type = 1;
+	job.target = target;
+
+	if (target)
+		cerr << "sending job " << job.target << "to " << msgqid_ << endl;
+	else
+		cerr << "signaling " << msgqid_ << endl;
+
+	if (msgsnd(msgqid_, &job, msg_size(job), 0) < 0)
 		throw runtime_error("msgsnd() failure");
+}
+
+Target* Messaging::getJob() {
+	struct msg_job job;
+
+	cerr << "waiting for job " << msgqid_ << endl;
+
+	if (msg_size(job) != msgrcv(msgqid_, &job, msg_size(job), 0, 0))
+		throw runtime_error("msgrcv() failure");
+
+	if (job.target)
+		cerr << "got job " << job.target << endl;
+	else
+		cerr << "signaled" << endl;
+
+	return job.target;
+}
+
+void Messaging::signal() {
+	sendJob(NULL);
+}
+
+void Messaging::wait() {
+	getJob();
 }
