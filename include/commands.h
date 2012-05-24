@@ -1,9 +1,10 @@
 #ifndef COMMANDS_COMMANDS_H_
 #define COMMANDS_COMMANDS_H_
 
-#include "dbparser.h"
 #include <vector>
 #include <string>
+
+#include "dbparser.h"
 
 /**
  * An exception thrown by count_commands if make -n

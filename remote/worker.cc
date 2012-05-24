@@ -1,6 +1,7 @@
 #include <string>
 #include <stdexcept>
 #include <iostream>
+#include <utility>
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -24,11 +25,11 @@ int main() {
 	Messaging* m = new Messaging();
 	SshWorker* w = new SshWorker("students", "~/Downloads/", m);
 
-	m->wait();
+	m->GetJob();
 	w->BuildTarget(tg);
 
-	Target* t = m->getJob();
-	cerr << tg << " " << t << endl;
+	pair<Target*, Worker*> p = m->GetJob();
+	cerr << tg << " " << p.first << endl << w << " " << p.second << endl;
 
 	delete w;
 	delete m;
@@ -37,6 +38,16 @@ int main() {
 
 /* ugly: find workaround */
 static SshWorker* currentWorker = NULL;
+
+void do_kill_build(int sig) {
+	if (sig) {
+		if (currentWorker == NULL)
+			throw runtime_error("empty worker");
+
+		/* EXEC: WORKER */
+		throw runtime_error("NOT IMPLEMENTED");
+	}
+}
 
 void do_kill_worker(int sig) {
 	if (sig) {
@@ -52,16 +63,6 @@ void do_kill_worker(int sig) {
 		delete currentWorker->session_;
 
 		exit(0);
-	}
-}
-
-void do_kill_build(int sig) {
-	if (sig) {
-		if (currentWorker == NULL)
-			throw runtime_error("empty worker");
-
-		/* EXEC: WORKER */
-		throw runtime_error("NOT IMPLEMENTED");
 	}
 }
 
@@ -153,9 +154,10 @@ int SshWorker::exec(const string& comm) {
 void SshWorker::do_run() {
 
 	/* ready to start */
-	msg_parent_->signal();
+	msg_parent_->SendJob(NULL);
 
-	Target* target = msg_jobs_->getJob();
+	pair<Target*, Worker*> p = msg_jobs_->GetJob();
+	Target* target = p.first;
 
 	/* prepare, send commands and read response */
 	string commands = target->BuildBashScript(working_dir_);
@@ -163,16 +165,16 @@ void SshWorker::do_run() {
 
 	/* notify that we've done here */
 	if (ret_val == 0)
-		msg_parent_->sendJob(target);
+		msg_parent_->SendJob(target, this);
 	else
-		msg_parent_->sendJob(NULL);
+		msg_parent_->SendJob(NULL, this);
 }
 
 void SshWorker::BuildTarget(Target* target) {
 	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
-		msg_jobs_->sendJob(target);
+		msg_jobs_->SendJob(target);
 	}
 }
 
@@ -203,30 +205,23 @@ Messaging::~Messaging() {
 struct msg_job {
 	long type;
 	Target* target;
+	Worker* worker;
 };
 
 #define msg_size(msg) (sizeof((msg))-sizeof((msg).type))
 
-void Messaging::sendJob(Target* target) {
-	struct msg_job job = {1, target};
+void Messaging::SendJob(Target* target, Worker* worker) {
+	struct msg_job job = {1, target, worker};
 
 	if (msgsnd(msgqid_, &job, msg_size(job), 0) < 0)
 		throw runtime_error("msgsnd() failure");
 }
 
-Target* Messaging::getJob() {
+pair<Target*, Worker*> Messaging::GetJob() {
 	struct msg_job job;
 
 	if (msg_size(job) != msgrcv(msgqid_, &job, msg_size(job), 0, 0))
 		throw runtime_error("msgrcv() failure");
 
-	return job.target;
-}
-
-void Messaging::signal() {
-	sendJob(NULL);
-}
-
-void Messaging::wait() {
-	getJob();
+	return make_pair(job.target, job.worker);
 }

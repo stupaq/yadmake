@@ -7,27 +7,36 @@
 
 #include "dbparser.h"
 
+/** Abstract class representing worker. */
+class Worker {
+	public:
+		/**
+		 * Kills current build, freeing worker. */
+		virtual void KillBuild() = 0;
+		/**
+		 * Submits given target to this worker.
+		 * @param target pointer to target to build */
+		virtual void BuildTarget(Target* target) = 0;
+};
+
+/** Messaging primitive between dispatcher and worker. */
 class Messaging {
 	private:
 		int msgqid_;
 	public:
 		Messaging();
 		~Messaging();
-		void signal();
-		void wait();
-		void sendJob(Target* target);
-		Target* getJob();
+		/**
+		 * Submits job to given messaging queue.
+		 * @param target pointer to target to build */
+		void SendJob(Target* target, Worker* worker = NULL);
+		/**
+		 * Gets first job and worker that made it from queue.
+		 * @return pointerst to target and worker */
+		std::pair<Target*, Worker*> GetJob();
 };
 
-class Worker {
-	public:
-		virtual void KillBuild() = 0;
-		virtual void BuildTarget(Target* target) = 0;
-};
-
-void do_kill_worker(int s);
-void do_kill_build(int s);
-
+/** Worker implementation using SSH */
 class SshWorker : public Worker {
 	friend void do_kill_worker(int s);
 	friend void do_kill_build(int s);
