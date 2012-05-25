@@ -19,15 +19,25 @@
 
 \title{Plan zarządzania jakością projektu ,,System rozproszonej kompilacji''}
 \author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
-\date{25 marca 2012~r.}
+\date{\today}
 
 \begin{document}
 
 \maketitle
 
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Opis zmian} & \textbf{Autorzy} \\ \hline
+		25/03/2012 & 1 & Wstępna wersja dokumentu & Mateusz Machalica \\ \hline
+		25/05/2012 & 2 & Dodano wstęp & Mateusz Machalica \\ \hline
+	\end{tabular}
+\end{table}
+
 \section{Wstęp}
 
-
+Celem tego dokumentu jest ustalenie standardów zarządzania jakością kodu oraz dokumentacji i sposobów sprawdzania zgodności systemu z wymaganiami pozafunkcjonalnymi.
 
 \section{Kod źródłowy}
 
@@ -42,7 +52,7 @@ Do weryfikacji zgodności kodu z przyjętymi standardami przed każdym wydaniem 
 
 \subsection{Wyjątki i zgłaszanie błędów}
 
-Jedyną formą zgłaszania błędów przez funkcje/metody są wyjątki. Nie dopuszczamy zwracania pewnych globalnych flag ani wartości NULL, a wszystkie błędy zgłaszane przez wywoływane funkcje systemowe lub inne, nie obsługujące zgłaszania wyjątków, powinny być przekazywane dalej również w formie wyjątków.
+Jedyną formą zgłaszania błędów przez funkcje/metody są wyjątki. Nie dopuszczamy ustawiania pewnych globalnych flag ani zwracania wartości NULL, a wszystkie błędy zgłaszane przez wywoływane funkcje systemowe lub inne, nie obsługujące zgłaszania wyjątków, powinny być przekazywane dalej również w formie wyjątków.
 
 Wyjątki, których wystąpienie jest związane z działaniem danej funkcji, a które nie zostały zadeklarowane w pliku nagłówkowym biblioteki standardowej \verb+stdexcept+ powinny być zadeklarowane w tym samym pliku nagłówkowym co funkcja, która może taki wyjątek podnieść. Ponadto wymaga się, aby każdy wyjątek dziedziczył z jednego z wyjątków zadeklarowanych w \verb+stdexcept+.
 
@@ -73,7 +83,7 @@ Każde wydanie programu, powinno być dodatkowo testowane poprzez zbudowanie wł
 
 \section{Wydajność}
 
-Z racji eksperymentalnego charakteru systemu nie znamy kanonicznych sposobów testowania wydajności dla podobnych systemów. W początkowej fazie nie zamierzamy optymalizować fragmentów programu, lecz program jako całość poprzez wybór odpowiednich protokołów komunikacyjnych i architekury systemu.
+Z racji eksperymentalnego charakteru systemu nie znamy kanonicznych sposobów testowania wydajności dla podobnych systemów. W początkowej fazie nie zamierzamy optymalizować fragmentów programu, lecz program jako całość poprzez wybór odpowiednich protokołów komunikacyjnych i architektury systemu.
 
 Profilowanie poszczególnych fragmentów programu przewidujemy dopiero przed wydaniami stabilnymi.
 
