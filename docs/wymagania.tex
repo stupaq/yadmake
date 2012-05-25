@@ -10,21 +10,31 @@
 
 \title{Wymagania projektu ,,System rozproszonej kompilacji''}
 \author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
-\date{19 marca 2012~r.}
+\date{\today}
 
 \begin{document}
 
 \maketitle
 
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Opis zmian} & \textbf{Autorzy} \\ \hline
+		19/03/2012 & 1 & Wstępna wersja dokumentu & Cały zespół \\ \hline
+		25/05/2012 & 2 & Aktualizacja scenariuszy alternatywnych i listy implementowanych opcji & Mateusz Machalica \\ \hline
+	\end{tabular}
+\end{table}
+
 \section{Założenia wstępne}
 
-System wymaga, aby na każdej maszynie, zarówno zdalnej jak i jednostce zarządajacej procesem konfiguracji był zainstalowany i skonfigurowany interpreter poleceń bash, daemon ssh oraz wszystkie programy, które byłyby potrzebne to lokalnego zbudowania projektu przy pomocy programu GNUMake. Dodatkowo na maszynie, na której jest wykonywany program, powinien być poprawnie zainstalowany GNUMake i lokalizacja jego pliku wykonywalnego powinna być dodana do zmiennej środowiskowej \$PATH.
+System wymaga, aby na każdej maszynie, zarówno zdalnej jak i jednostce zarządzającej procesem konfiguracji był zainstalowany i skonfigurowany interpreter poleceń bash, daemon ssh oraz wszystkie programy, które byłyby potrzebne to lokalnego zbudowania projektu przy pomocy programu GNUMake. Dodatkowo na maszynie, na której jest wykonywany program, powinien być poprawnie zainstalowany GNUMake i lokalizacja jego pliku wykonywalnego powinna być dodana do zmiennej środowiskowej \verb+$PATH+.
 
 \section{Wymagania funkcjonalne}
 
-Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego docelowego zastosowania jako zamiennik GNUMake’a przy budowaniu złożonych projektów. Wymagania funkcjonalne zostały wyspecyfikowane poprzez przypadki użycia. Aktorzy występujący w scenariuszach to:
+Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego docelowego zastosowania jako zamiennika GNUMake’a przy budowaniu złożonych projektów. Wymagania funkcjonalne zostały wyspecyfikowane poprzez przypadki użycia. Aktorzy występujący w scenariuszach to:
 \begin{itemize}
-	\item użytkownik - programista, chcący szybko skompilować program
+	\item użytkownik - osoba chcąca skompilować program przy użyciu systemu
 	\item centralny komputer na którym uruchamiana jest kompilacja
 	\item pomocnicze jednostki kompilacji dostępne w sieci
 \end{itemize}
@@ -33,9 +43,9 @@ Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego doceloweg
 
 \begin{enumerate}
 	\item Użytkownik podaje, jakie komputery są do dyspozycji
-	\item Użytkownik rozpoczyna kompilację wpisując w konsolę polecenie dmake z argumentami jak w GNUMake (cele, [opcje]) 
+	\item Użytkownik rozpoczyna kompilację wpisując w konsolę polecenie \verb+yadmake+ z argumentami jak w GNUMake (cele, [opcje]) 
 	\item System buduje podane cele
-	\item Efekt jest taki, jak przy użyciu GNUMake (wypisuje standardowe wyjście i wyjście błędów wykonywanych komend, zwraca odpowiedni kod wyjścia)
+	\item Efekt jest taki, jak przy użyciu GNUMake (wypisuje standardowe wyjście i wyjście błędów wykonywanych komend, zwraca odpowiedni kod wyjścia), pliki wynikowe znajdują się w katalogu, w którym został wywołany program
 \end{enumerate}
 
 
@@ -53,7 +63,7 @@ Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego doceloweg
 \begin{enumerate}
 	\item Nie udaje się nawiązać żadnego połączenia
 	\item System zgłasza komunikat o błędzie połączenia
-	\item Kompilacja przy użyciu GNUMake
+	\item Kompilacją zostaje porzucona
 \end{enumerate}
 
 
@@ -70,7 +80,7 @@ Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego doceloweg
 \begin{enumerate}
 	\item Błąd kompilacji na jednym z komputerów
 	\item Dokończenie tworzenia równolegle kompilowanych celów na pozostałych jednostkach
-	\item Wypisanie komunikatu o błędzie i standardowego wyjścia z kompilatora
+	\item Wypisanie komunikatu o błędzie i kodu zwróconego przez polecenie, które spowodowało ten błąd
 \end{enumerate}
 
 
@@ -85,6 +95,17 @@ Podstawowe wymagania funkcjonalne dotyczące produktu wynikają z jego doceloweg
 		\end{itemize}
 	\item Komunikat o błędzie z podaniem przyczyny
 \end{enumerate}
+
+\subsection{Opcje implementowane przez program}
+
+Program będzie implementował podzbiór opcji programu GNUMake oraz opcje sterujące procesem kompilacji. Wszystkie opcje mają być zgodne z formatem \verb+getopts+ (w wersji POSIX, a zatem bez długich opcji).
+Implementowane opcje:
+
+\begin{itemize}
+	\item \verb+-k+ -- nie kończy procesu budowania przy pierwszym błędzie, ale kontynuuje kompilację celów, na których kompilację pozwalają wykonane już zależności
+	\item \verb+-B+ -- nie uwzględnia czasów modyfikacji celów i plików źródłowych, traktując wszystkie jako zmodyfikowane
+	% TODO implementowane opcje 
+\end{itemize}
 
 
 \section{Wymagania pozafunkcjonalne}
@@ -110,7 +131,7 @@ W przypadku wykorzystania do komunikacji pomiędzy maszynami np. Internetu, wyma
 
 \subsection{Szybkość}
 
-Docelowo system ma przyspieszać kompilację projektów, które składają sie z wielu niezależnych części i których kompilacja może zostać zrównoleglona w wystarczającym stopniu aby zniwelować opóźnienia spowodowane zdalną komunikacją maszyn uczestniczących w procesie kompilacji.
+Docelowo system ma przyspieszać kompilację projektów, które składają się z wielu niezależnych części i których kompilacja może zostać zrównoleglona w wystarczającym stopniu aby zniwelować opóźnienia spowodowane zdalną komunikacją maszyn uczestniczących w procesie kompilacji.
 Jeśli zaniedbać opóźnienia związane ze zdalną komunikacja przez sieć, system ma działać nie wolniej niż wykonanie GNUMake’a na pojedynczym komputerze.
 
 
@@ -121,13 +142,13 @@ Z racji zamierzonej zgodności ze standardem (jakim są pochodne make’a) w wi�
 
 \subsection{Komunikaty o błędach}
 
-Takie same jak w GNUMake, dodatkowo komunikaty o niepoprawnej konfiguracji maszyn kompilujących, braku łącznosci lub innych problemach związanych ze zdalnym wykonywaniem zadań.
-Tak jak GNUMake program będzie wypisywał standardowe wyjście i wyjście błędów wszystkich komend, kóre wykona celem zbudowania zawartości opisanej w Makefile’u.
+Komunikaty o błędach mają być takie same jak w programie GNUMake, dodatkowo komunikaty o niepoprawnej konfiguracji maszyn kompilujących, braku łączności lub innych problemach związanych ze zdalnym wykonywaniem zadań będą wypisywanie w terminalu, w którym zostanie wykonany program.
+Tak jak GNUMake, program będzie wypisywał standardowe wyjście i wyjście błędów wszystkich komend, które wykona celem zbudowania zawartości opisanej w Makefile’u.
 
 
 \subsection{Estetyka}
 
-Piękny czarny terminal.
+Z racji sposobu interakcji z użytkownikiem ten punkt nie stosuje się do opisywanego systemu.
 
 
 \end{document}
