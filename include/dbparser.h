@@ -72,6 +72,7 @@ class Target {
 	friend void count_one_level(const std::vector<std::string>& basics,
 			const std::string& delimiter, const std::vector<Target*>& to_make,
 			const std::vector<Target*>& not_to_make);
+
 	public:
 		/** Integer value unique to each Target. */
 		const int kId_;
@@ -100,6 +101,14 @@ class Target {
 		 */
 		Target(const std::string& name);
 		virtual ~Target();
+
+    /**
+     * Mark me as realized - 
+     * decrease dependent targets inords
+     * check whether dependent targets are ready to realize,
+     * add them to ready_targets
+     */
+	  void MarkRealized(std::vector<Target*> &ready_targets);
 	protected:
 		std::list<Target*> dependent_targets_;
 		std::list<Target*> dependencies_;

@@ -44,6 +44,14 @@ std::string Target::BuildBashScript(const std::string& working_dir) {
 	return ss.str();
 }
 
+void Target::MarkRealized(std::vector<Target*> &ready_targets)
+{
+  BOOST_FOREACH(Target * i, dependent_targets_){
+    --(i->inord_);
+    if (i->inord_==0)
+      ready_targets.push_back(i);
+  }
+}
 
 DependencyGraph::DependencyGraph(istream& is) {
 	Init(is);
