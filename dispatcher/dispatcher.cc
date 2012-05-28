@@ -9,32 +9,21 @@
 #include <boost/foreach.hpp>
 #include <string>
 #include <stdio.h>
-#include "../include/dispatcher.h"
-#include "../include/err.h"
+#include "dispatcher.h"
+#include "err.h"
 
 void error(){
   fprintf(stderr,"error\n");
   exit(1);
 }
 
-/** mark @param target as realized, 
- * check whether dependent targets are ready to realize,
- * add them to ready_targets
- */
-inline void MarkRealized(Target * t, std::vector<Target*> & ready_targets){
-  
-  BOOST_FOREACH(Target * i, t->dependent_targets_){
-    --(i->inord_);
-    if (i->inord_==0)
-      ready_targets.push_back(i);
-  }
-}
-
 /* make sure inord is properly initialized TODO is it? */
-void Dispatcher(const DependencyGraph & dependency_graph, std::vector<Worker *> free_workers, Messaging *messaging){
+void Dispatcher(const DependencyGraph & dependency_graph,
+    std::vector<Worker *> free_workers, Messaging *messaging,
+    bool keep_going = false){
 
   std::vector<Target *> ready_targets;
-  std::map<Target *, Worker *> target_worker;
+  //  std::map<Target *, Worker *> target_worker;
   int child_count;
 
   ready_targets = dependency_graph.leaf_targets_;
@@ -51,19 +40,19 @@ void Dispatcher(const DependencyGraph & dependency_graph, std::vector<Worker *> 
       Worker *c = free_workers.back();
       free_workers.pop_back();
       
-      target_worker[t] = c;
       c->BuildTarget(t);
       ++child_count;
     }
     
     Target *completed_target;
+    pair<Target *, Worker *> targer_worker = messaging->getJob();
 
-    completed_target = messaging->getJob();
     --child_count;
     
-    free_workers.push_back(target_worker[completed_target]);
-    target_worker.erase(completed_target);
+    free_workers.push_back(target_worker.second);
     if (completed_target != NULL)
-      MarkRealized(completed_target, ready_targets);
+      target_worker.first->MarkRealized(ready_targets);
+    else if (!keep_going)
+      syserr("building target error");
   }
 }
