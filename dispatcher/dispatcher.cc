@@ -9,9 +9,9 @@
 #include <boost/foreach.hpp>
 #include <string>
 #include <stdio.h>
+#include <utility>
 #include "dispatcher.h"
 #include "err.h"
-
 void error(){
   fprintf(stderr,"error\n");
   exit(1);
@@ -20,7 +20,7 @@ void error(){
 /* make sure inord is properly initialized TODO is it? */
 void Dispatcher(const DependencyGraph & dependency_graph,
     std::vector<Worker *> free_workers, Messaging *messaging,
-    bool keep_going = false){
+    bool keep_going){
 
   std::vector<Target *> ready_targets;
   //  std::map<Target *, Worker *> target_worker;
@@ -44,13 +44,12 @@ void Dispatcher(const DependencyGraph & dependency_graph,
       ++child_count;
     }
     
-    Target *completed_target;
-    pair<Target *, Worker *> targer_worker = messaging->getJob();
+    std::pair<Target *, Worker *> target_worker = messaging->GetJob();
 
     --child_count;
     
     free_workers.push_back(target_worker.second);
-    if (completed_target != NULL)
+    if (target_worker.first != NULL)
       target_worker.first->MarkRealized(ready_targets);
     else if (!keep_going)
       syserr("building target error");

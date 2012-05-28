@@ -23,7 +23,7 @@
  * [hopefully targets are built]
  */
 void Dispatcher(const DependencyGraph & dependency_graph,
-    std::vector<Worker *> free_workers, Messaging *messaging
+    std::vector<Worker *> free_workers, Messaging *messaging,
     bool keep_going=false);
 
 #endif

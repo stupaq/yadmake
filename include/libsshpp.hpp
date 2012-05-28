@@ -58,6 +58,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+/* WTF?! TODO */
+#include <string>
+
 namespace ssh {
 
 	class Channel;
@@ -73,29 +76,19 @@ namespace ssh {
 	 */
 	class SshException{
 		public:
-			SshException(ssh_session csession){
-				code=ssh_get_error_code(csession);
-				description=std::string(ssh_get_error(csession));
-			}
-			SshException(const SshException &e){
-				code=e.code;
-				description=e.description;
-			}
+			SshException(ssh_session csession);
+			SshException(const SshException &e);
 			/** @brief returns the Error code
 			 * @returns SSH_FATAL Fatal error happened (not recoverable)
 			 * @returns SSH_REQUEST_DENIED Request was denied by remote host
 			 * @see ssh_get_error_code
 			 */
-			int getCode(){
-				return code;
-			}
+			int getCode();
 			/** @brief returns the error message of the last exception
 			 * @returns pointer to a c string containing the description of error
 			 * @see ssh_get_error
 			 */
-			std::string getError(){
-				return description;
-			}
+			std::string getError();
 		private:
 			int code;
 			std::string description;
@@ -126,62 +119,40 @@ namespace ssh {
 	class Session {
 		friend class Channel;
 		public:
-		Session(){
-			c_session=ssh_new();
-		}
-		~Session(){
-			ssh_free(c_session);
-			c_session=NULL;
-		}
+		Session();
+		~Session();
 		/** @brief sets an SSH session options
 		 * @param type Type of option
 		 * @param option cstring containing the value of option
 		 * @throws SshException on error
 		 * @see ssh_options_set
 		 */
-		void_throwable setOption(enum ssh_options_e type, const char *option){
-			ssh_throw(ssh_options_set(c_session,type,option));
-			return_throwable;
-		}
+		void_throwable setOption(enum ssh_options_e type, const char *option);
 		/** @brief sets an SSH session options
 		 * @param type Type of option
 		 * @param option long integer containing the value of option
 		 * @throws SshException on error
 		 * @see ssh_options_set
 		 */
-		void_throwable setOption(enum ssh_options_e type, long int option){
-			ssh_throw(ssh_options_set(c_session,type,&option));
-			return_throwable;
-		}
+		void_throwable setOption(enum ssh_options_e type, long int option);
 		/** @brief sets an SSH session options
 		 * @param type Type of option
 		 * @param option void pointer containing the value of option
 		 * @throws SshException on error
 		 * @see ssh_options_set
 		 */
-		void_throwable setOption(enum ssh_options_e type, void *option){
-			ssh_throw(ssh_options_set(c_session,type,option));
-			return_throwable;
-		}
+		void_throwable setOption(enum ssh_options_e type, void *option);
 		/** @brief connects to the remote host
 		 * @throws SshException on error
 		 * @see ssh_connect
 		 */
-		void_throwable connect(){
-			int ret=ssh_connect(c_session);
-			ssh_throw(ret);
-			return_throwable;
-		}
+		void_throwable connect();
 		/** @brief Authenticates automatically using public key
 		 * @throws SshException on error
 		 * @returns SSH_AUTH_SUCCESS, SSH_AUTH_PARTIAL, SSH_AUTH_DENIED
 		 * @see ssh_userauth_autopubkey
 		 */
-		int userauthAutopubkey(void){
-			int ret=ssh_userauth_autopubkey(c_session,NULL);
-			ssh_throw(ret);
-			return ret;
-		}
+		int userauthAutopubkey(void);
 		/** @brief Authenticates using the "none" method. Prefer using autopubkey if
 		 * possible.
 		 * @throws SshException on error
@@ -189,22 +160,14 @@ namespace ssh {
 		 * @see ssh_userauth_none
 		 * @see Session::userauthAutoPubkey
 		 */
-		int userauthNone(){
-			int ret=ssh_userauth_none(c_session,NULL);
-			ssh_throw(ret);
-			return ret;
-		}
+		int userauthNone();
 		/** @brief Authenticates using the password method.
 		 * @param[in] password password to use for authentication
 		 * @throws SshException on error
 		 * @returns SSH_AUTH_SUCCESS, SSH_AUTH_PARTIAL, SSH_AUTH_DENIED
 		 * @see ssh_userauth_password
 		 */
-		int userauthPassword(const char *password){
-			int ret=ssh_userauth_password(c_session,NULL,password);
-			ssh_throw(ret);
-			return ret;
-		}
+		int userauthPassword(const char *password);
 		/** @brief Try to authenticate using the publickey method.
 		 * @param[in] type public key type
 		 * @param[in] pubkey public key to use for authentication
@@ -213,11 +176,7 @@ namespace ssh {
 		 * @returns SSH_AUTH_DENIED if the pubkey is denied
 		 * @see ssh_userauth_offer_pubkey
 		 */
-		int userauthOfferPubkey(int type, ssh_string pubkey){
-			int ret=ssh_userauth_offer_pubkey(c_session,NULL,type,pubkey);
-			ssh_throw(ret);
-			return ret;
-		}
+		int userauthOfferPubkey(int type, ssh_string pubkey);
 		/** @brief Authenticates using the publickey method.
 		 * @param[in] pubkey public key to use for authentication
 		 * @param[in] privkey private key to use for authentication
@@ -225,16 +184,8 @@ namespace ssh {
 		 * @returns SSH_AUTH_SUCCESS, SSH_AUTH_PARTIAL, SSH_AUTH_DENIED
 		 * @see ssh_userauth_pubkey
 		 */
-		int userauthPubkey(ssh_string pubkey, ssh_private_key privkey){
-			int ret=ssh_userauth_pubkey(c_session,NULL,pubkey,privkey);
-			ssh_throw(ret);
-			return ret;
-		}
-		int userauthPubkey(ssh_private_key privkey){
-			int ret=ssh_userauth_pubkey(c_session,NULL,NULL,privkey);
-			ssh_throw(ret);
-			return ret;
-		}
+		int userauthPubkey(ssh_string pubkey, ssh_private_key privkey);
+		int userauthPubkey(ssh_private_key privkey);
 		int userauthPrivatekeyFile(const char *filename,
 				const char *passphrase);
 		/** @brief Returns the available authentication methods from the server
@@ -242,124 +193,76 @@ namespace ssh {
 		 * @returns Bitfield of available methods.
 		 * @see ssh_userauth_list
 		 */
-		int getAuthList(){
-			int ret=ssh_userauth_list(c_session, NULL);
-			ssh_throw(ret);
-			return ret;
-		}
+		int getAuthList();
 		/** @brief Disconnects from the SSH server and closes connection
 		 * @see ssh_disconnect
 		 */
-		void disconnect(){
-			ssh_disconnect(c_session);
-		}
+		void disconnect();
 		/** @brief Returns the disconnect message from the server, if any
 		 * @returns pointer to the message, or NULL. Do not attempt to free
 		 * the pointer.
 		 */
-		const char *getDisconnectMessage(){
-			const char *msg=ssh_get_disconnect_message(c_session);
-			return msg;
-		}
+		const char *getDisconnectMessage();
 		/** @internal
 		 * @brief gets error message
 		 */
-		const char *getError(){
-			return ssh_get_error(c_session);
-		}
+		const char *getError();
 		/** @internal
 		 * @brief returns error code
 		 */
-		int getErrorCode(){
-			return ssh_get_error_code(c_session);
-		}
+		int getErrorCode();
 		/** @brief returns the file descriptor used for the communication
 		 * @returns the file descriptor
 		 * @warning if a proxycommand is used, this function will only return
 		 * one of the two file descriptors being used
 		 * @see ssh_get_fd
 		 */
-		socket_t getSocket(){
-			return ssh_get_fd(c_session);
-		}
+		socket_t getSocket();
 		/** @brief gets the Issue banner from the ssh server
 		 * @returns the issue banner. This is generally a MOTD from server
 		 * @see ssh_get_issue_banner
 		 */
-		std::string getIssueBanner(){
-			char *banner=ssh_get_issue_banner(c_session);
-			std::string ret= std::string(banner);
-			::free(banner);
-			return ret;
-		}
+		std::string getIssueBanner();
 		/** @brief returns the OpenSSH version (server) if possible
 		 * @returns openssh version code
 		 * @see ssh_get_openssh_version
 		 */
-		int getOpensshVersion(){
-			return ssh_get_openssh_version(c_session);
-		}
+		int getOpensshVersion();
 		/** @brief returns the version of the SSH protocol being used
 		 * @returns the SSH protocol version
 		 * @see ssh_get_version
 		 */
-		int getVersion(){
-			return ssh_get_version(c_session);
-		}
+		int getVersion();
 		/** @brief verifies that the server is known
 		 * @throws SshException on error
 		 * @returns Integer value depending on the knowledge of the
 		 * server key
 		 * @see ssh_is_server_known
 		 */
-		int isServerKnown(){
-			int ret=ssh_is_server_known(c_session);
-			ssh_throw(ret);
-			return ret;
-		}
-		void log(int priority, const char *format, ...){
-			char buffer[1024];
-			va_list va;
-
-			va_start(va, format);
-			vsnprintf(buffer, sizeof(buffer), format, va);
-			va_end(va);
-			ssh_log(c_session,priority, "%s", buffer);
-		}
+		int isServerKnown();
+		void log(int priority, const char *format, ...);
 
 		/** @brief copies options from a session to another
 		 * @throws SshException on error
 		 * @see ssh_options_copy
 		 */
-		void_throwable optionsCopy(const Session &source){
-			ssh_throw(ssh_options_copy(source.c_session,&c_session));
-			return_throwable;
-		}
+		void_throwable optionsCopy(const Session &source);
 		/** @brief parses a configuration file for options
 		 * @throws SshException on error
 		 * @param[in] file configuration file name
 		 * @see ssh_options_parse_config
 		 */
-		void_throwable optionsParseConfig(const char *file){
-			ssh_throw(ssh_options_parse_config(c_session,file));
-			return_throwable;
-		}
+		void_throwable optionsParseConfig(const char *file);
 		/** @brief silently disconnect from remote host
 		 * @see ssh_silent_disconnect
 		 */
-		void silentDisconnect(){
-			ssh_silent_disconnect(c_session);
-		}
+		void silentDisconnect();
 		/** @brief Writes the known host file with current
 		 * host key
 		 * @throws SshException on error
 		 * @see ssh_write_knownhost
 		 */
-		int writeKnownhost(){
-			int ret = ssh_write_knownhost(c_session);
-			ssh_throw(ret);
-			return ret;
-		}
+		int writeKnownhost();
 
 		/** @brief accept an incoming forward connection
 		 * @param[in] timeout_ms timeout for waiting, in ms
@@ -372,24 +275,14 @@ namespace ssh {
 		Channel *acceptForward(int timeout_ms);
 		/* acceptForward is implemented later in this file */
 
-		void_throwable cancelForward(const char *address, int port){
-			int err=ssh_forward_cancel(c_session, address, port);
-			ssh_throw(err);
-			return_throwable;
-		}
+		void_throwable cancelForward(const char *address, int port);
 
 		void_throwable listenForward(const char *address, int port,
-				int &boundport){
-			int err=ssh_forward_listen(c_session, address, port, &boundport);
-			ssh_throw(err);
-			return_throwable;
-		}
+				int &boundport);
 
 		private:
 		ssh_session c_session;
-		ssh_session getCSession(){
-			return c_session;
-		}
+		ssh_session getCSession();
 		/* No copy constructor, no = operator */
 		Session(const Session &);
 		Session& operator=(const Session &);
@@ -402,14 +295,8 @@ namespace ssh {
 	class Channel {
 		friend class Session;
 		public:
-		Channel(Session &session){
-			channel=ssh_channel_new(session.getCSession());
-			this->session=&session;
-		}
-		~Channel(){
-			ssh_channel_free(channel);
-			channel=NULL;
-		}
+		Channel(Session &session);
+		~Channel();
 
 		/** @brief accept an incoming X11 connection
 		 * @param[in] timeout_ms timeout for waiting, in ms
@@ -419,141 +306,66 @@ namespace ssh {
 		 * @see ssh_channel_accept_x11
 		 * @see Channel::requestX11
 		 */
-		Channel *acceptX11(int timeout_ms){
-			ssh_channel x11chan = ssh_channel_accept_x11(channel,timeout_ms);
-			ssh_throw_null(getCSession(),x11chan);
-			Channel *newchan = new Channel(getSession(),x11chan);
-			return newchan;
-		}
+		Channel *acceptX11(int timeout_ms);
 		/** @brief change the size of a pseudoterminal
 		 * @param[in] cols number of columns
 		 * @param[in] rows number of rows
 		 * @throws SshException on error
 		 * @see ssh_channel_change_pty_size
 		 */
-		void_throwable changePtySize(int cols, int rows){
-			int err=ssh_channel_change_pty_size(channel,cols,rows);
-			ssh_throw(err);
-			return_throwable;
-		}
+		void_throwable changePtySize(int cols, int rows);
 
 		/** @brief closes a channel
 		 * @throws SshException on error
 		 * @see ssh_channel_close
 		 */
-		void_throwable close(){
-			ssh_throw(ssh_channel_close(channel));
-			return_throwable;
-		}
+		void_throwable close();
 
-		int getExitStatus(){
-			return ssh_channel_get_exit_status(channel);
-		}
-		Session &getSession(){
-			return *session;
-		}
+		int getExitStatus();
+
+		Session &getSession();
 		/** @brief returns true if channel is in closed state
 		 * @see ssh_channel_is_closed
 		 */
-		bool isClosed(){
-			return ssh_channel_is_closed(channel) != 0;
-		}
+		bool isClosed();
 		/** @brief returns true if channel is in EOF state
 		 * @see ssh_channel_is_eof
 		 */
-		bool isEof(){
-			return ssh_channel_is_eof(channel) != 0;
-		}
+		bool isEof();
 		/** @brief returns true if channel is in open state
 		 * @see ssh_channel_is_open
 		 */
-		bool isOpen(){
-			return ssh_channel_is_open(channel) != 0;
-		}
+		bool isOpen();
+
 		int openForward(const char *remotehost, int remoteport,
-				const char *sourcehost=NULL, int localport=0){
-			int err=ssh_channel_open_forward(channel,remotehost,remoteport,
-					sourcehost, localport);
-			ssh_throw(err);
-			return err;
-		}
+				const char *sourcehost=NULL, int localport=0);
+
 		/* TODO: completely remove this ? */
-		void_throwable openSession(){
-			int err=ssh_channel_open_session(channel);
-			ssh_throw(err);
-			return_throwable;
-		}
-		int poll(bool is_stderr=false){
-			int err=ssh_channel_poll(channel,is_stderr);
-			ssh_throw(err);
-			return err;
-		}
-		int read(void *dest, size_t count, bool is_stderr=false){
-			int err;
-			/* handle int overflow */
-			if(count > 0x7fffffff)
-				count = 0x7fffffff;
-			err=ssh_channel_read(channel,dest,count,is_stderr);
-			ssh_throw(err);
-			return err;
-		}
-		int readNonblocking(void *dest, size_t count, bool is_stderr=false){
-			int err;
-			/* handle int overflow */
-			if(count > 0x7fffffff)
-				count = 0x7fffffff;
-			err=ssh_channel_read_nonblocking(channel,dest,count,is_stderr);
-			ssh_throw(err);
-			return err;
-		}
-		void_throwable requestEnv(const char *name, const char *value){
-			int err=ssh_channel_request_env(channel,name,value);
-			ssh_throw(err);
-			return_throwable;
-		}
+		void_throwable openSession();
 
-		void_throwable requestExec(const char *cmd){
-			int err=ssh_channel_request_exec(channel,cmd);
-			ssh_throw(err);
-			return_throwable;
-		}
-		void_throwable requestPty(const char *term=NULL, int cols=0, int rows=0){
-			int err;
-			if(term != NULL && cols != 0 && rows != 0)
-				err=ssh_channel_request_pty_size(channel,term,cols,rows);
-			else
-				err=ssh_channel_request_pty(channel);
-			ssh_throw(err);
-			return_throwable;
-		}
+		int poll(bool is_stderr=false);
 
-		void_throwable requestShell(){
-			int err=ssh_channel_request_shell(channel);
-			ssh_throw(err);
-			return_throwable;
-		}
-		void_throwable requestSendSignal(const char *signum){
-			int err=ssh_channel_request_send_signal(channel, signum);
-			ssh_throw(err);
-			return_throwable;
-		}
-		void_throwable requestSubsystem(const char *subsystem){
-			int err=ssh_channel_request_subsystem(channel,subsystem);
-			ssh_throw(err);
-			return_throwable;
-		}
+		int read(void *dest, size_t count, bool is_stderr=false);
+
+		int readNonblocking(void *dest, size_t count, bool is_stderr=false);
+
+		void_throwable requestEnv(const char *name, const char *value);
+
+		void_throwable requestExec(const char *cmd);
+
+		void_throwable requestPty(const char *term=NULL, int cols=0, int rows=0);
+
+		void_throwable requestShell();
+
+		void_throwable requestSendSignal(const char *signum);
+
+		void_throwable requestSubsystem(const char *subsystem);
+
 		int requestX11(bool single_connection,
-				const char *protocol, const char *cookie, int screen_number){
-			int err=ssh_channel_request_x11(channel,single_connection,
-					protocol, cookie, screen_number);
-			ssh_throw(err);
-			return err;
-		}
-		void_throwable sendEof(){
-			int err=ssh_channel_send_eof(channel);
-			ssh_throw(err);
-			return_throwable;
-		}
+				const char *protocol, const char *cookie, int screen_number);
+
+		void_throwable sendEof();
+
 		/** @brief Writes on a channel
 		 * @param data data to write.
 		 * @param len number of bytes to write.
@@ -563,24 +375,12 @@ namespace ssh {
 		 * @see channel_write
 		 * @see channel_write_stderr
 		 */
-		int write(const void *data, size_t len, bool is_stderr=false){
-			int ret;
-			if(is_stderr){
-				ret=ssh_channel_write_stderr(channel,data,len);
-			} else {
-				ret=ssh_channel_write(channel,data,len);
-			}
-			ssh_throw(ret);
-			return ret;
-		}
+		int write(const void *data, size_t len, bool is_stderr=false);
 		private:
-		ssh_session getCSession(){
-			return session->getCSession();
-		}
-		Channel (Session &session, ssh_channel c_channel){
-			this->channel=c_channel;
-			this->session=&session;
-		}
+		ssh_session getCSession();
+
+		Channel (Session &session, ssh_channel c_channel);
+
 		Session *session;
 		ssh_channel channel;
 		/* No copy and no = operator */
@@ -590,13 +390,7 @@ namespace ssh {
 
 
 	/* This code cannot be put inline due to references to Channel */
-	Channel *Session::acceptForward(int timeout_ms){
-		ssh_channel forward = ssh_forward_accept(c_session,
-				timeout_ms);
-		ssh_throw_null(c_session,forward);
-		Channel *newchan = new Channel(*this,forward);
-		return newchan;
-	}
+	// Channel *Session::acceptForward(int timeout_ms);
 
 } // namespace ssh
 
