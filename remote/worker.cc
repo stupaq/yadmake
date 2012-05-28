@@ -20,7 +20,8 @@ using namespace ssh;
 #define EMPTY_READS_US 5000
 
 // XXX
-int main() {
+/* TODO zmieniona nazwa ponizej.. 
+int mpain() {
 	Target* tg = new Target("abcd");
 	Messaging* m = new Messaging();
 	SshWorker* w = new SshWorker("students", "~/Downloads/", m);
@@ -35,6 +36,7 @@ int main() {
 	delete m;
 	delete tg;
 }
+*/
 
 /* ugly: find workaround */
 static SshWorker* currentWorker = NULL;
