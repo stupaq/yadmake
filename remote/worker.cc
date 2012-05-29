@@ -153,7 +153,7 @@ void SshWorker::do_run() {
 		string commands = target->BuildBashScript(working_dir_);
 		ret_val = exec(commands);
 	} catch(SshException e) {
-		ret_val = 0;
+		msg_parent_->SendJob(NULL, this);
 		throw e;
 	}
 
@@ -176,9 +176,6 @@ void SshWorker::KillBuild() {
 	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
-		if (pid_ < 0)
-			throw runtime_error("worker not running");
-
 		if (kill(pid_, SIGUSR1) < 0)
 			throw runtime_error("failed to kill worker");
 
@@ -193,6 +190,7 @@ Messaging::Messaging() {
 }
 
 Messaging::~Messaging() {
+	// FIXME reference counting
 	msgctl(msgqid_, IPC_RMID, NULL);
 }
 
