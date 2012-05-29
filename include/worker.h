@@ -29,7 +29,7 @@ class Messaging {
 		/**
 		 * Submits job to given messaging queue.
 		 * @param target pointer to target to build */
-		void SendJob(Target* target, Worker* worker = NULL);
+		void SendJob(Target* target, Worker* worker);
 		/**
 		 * Gets first job and worker that made it from queue.
 		 * @return pointerst to target and worker */

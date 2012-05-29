@@ -19,25 +19,6 @@ using namespace ssh;
 #define EMPTY_READS_NB 50
 #define EMPTY_READS_US 5000
 
-// XXX
-/* TODO zmieniona nazwa ponizej.. 
-int mpain() {
-	Target* tg = new Target("abcd");
-	Messaging* m = new Messaging();
-	SshWorker* w = new SshWorker("students", "~/Downloads/", m);
-
-	m->GetJob();
-	w->BuildTarget(tg);
-
-	pair<Target*, Worker*> p = m->GetJob();
-	cerr << tg << " " << p.first << endl << w << " " << p.second << endl;
-
-	delete w;
-	delete m;
-	delete tg;
-}
-*/
-
 /* ugly: find workaround */
 static SshWorker* currentWorker = NULL;
 
@@ -88,13 +69,18 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 		signal(SIGUSR1, &do_kill_build);
 		signal(SIGTERM, &do_kill_worker);
 
-		/* connect and authenticate */
-		session_ = new Session;
-		session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
-		session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
+		try {
+			/* connect and authenticate */
+			session_ = new Session;
+			session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
+			session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
 
-		session_->connect();
-		session_->userauthAutopubkey();
+			session_->connect();
+			session_->userauthAutopubkey();
+		} catch (SshException e) {
+			msg_parent_->SendJob(NULL, NULL);
+			throw e;
+		}
 
 		/* run main dispatcher */
 		do_run();
@@ -154,16 +140,22 @@ int SshWorker::exec(const string& comm) {
 }
 
 void SshWorker::do_run() {
+	int ret_val;
 
 	/* ready to start */
-	msg_parent_->SendJob(NULL);
+	msg_parent_->SendJob(NULL, this);
 
 	pair<Target*, Worker*> p = msg_jobs_->GetJob();
 	Target* target = p.first;
 
-	/* prepare, send commands and read response */
-	string commands = target->BuildBashScript(working_dir_);
-	int ret_val = exec(commands);
+	try {
+		/* prepare, send commands and read response */
+		string commands = target->BuildBashScript(working_dir_);
+		ret_val = exec(commands);
+	} catch(SshException e) {
+		ret_val = 0;
+		throw e;
+	}
 
 	/* notify that we've done here */
 	if (ret_val == 0)
@@ -176,7 +168,7 @@ void SshWorker::BuildTarget(Target* target) {
 	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
-		msg_jobs_->SendJob(target);
+		msg_jobs_->SendJob(target, NULL);
 	}
 }
 
