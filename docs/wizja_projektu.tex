@@ -18,17 +18,23 @@
 
 \begin{table}[!h]
 	\centering
-	\begin{tabular}{|c|c|c|c|}
+	\begin{tabular}{|c|c|c|p{9cm}|}
 		\hline
-		\textbf{Data} & \textbf{Wersja} & \textbf{Opis zmian} & \textbf{Autorzy} \\ \hline
-		27/02/2012 & 1 & Wstępna wersja dokumentu & Cały zespół \\ \hline
-		25/05/2012 & 2 & Aktualizacja dokumentu przed drugą iteracją & Mateusz Machalica \\ \hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
+		27/02/2012 & 1 & Cały zespół & Wstępna wersja dokumentu \\ \hline
+		25/05/2012 & 2 & Mateusz Machalica & Formalizacja postawienia projektu \\ \hline
+		29/05/2012 & 3 & Mateusz Machalica & Dodanie wstępu i ograniczeń projektu \\ \hline
 	\end{tabular}
 \end{table}
 
+\section{Wstęp}
+
+Celem tego dokumentu jest przedstawienie problemu, który ma rozwiązywać system, ponadto dokument ma stanowić uzasadnienie dla podjęcia realizacji projektu w oparciu o analizę istniejących rozwiązań i określenie grupy potencjalnych odbiorców.
+Wymagania dotyczące systemu oraz jego architektura zostały sformułowane w osobnych dokumentach, odpowiednio ,,Wymaganiach projektu'' oraz ,,Architekturze systemu''.
+
 \section{Motywacja}
 
-Kompilacja złożonych projektów informatycznych trwa nieraz bardzo długo na pojedynczym komputerze. Czasem komputer jest nawet za słaby, aby podołać temu w rozsądnym czasie. Obecnie mamy do dyspozycji coraz szybsze środki transferu danych. Powstaje więc pomysł wykorzystania ich do przyspieszenia procesu kompilacji poprzez rozproszenie obliczeń na wiele komputerów połączonych w sieć o dostatecznie dużej przepustowości.
+Kompilacja złożonych projektów informatycznych trwa nieraz bardzo długo na pojedynczym komputerze. Czasem jeden komputer ma za małą moc obliczeniową, aby podołać temu w rozsądnym czasie. Obecnie mamy do dyspozycji coraz szybsze środki transferu danych. Powstaje więc pomysł wykorzystania ich do przyspieszenia procesu kompilacji poprzez rozproszenie obliczeń na wiele komputerów połączonych w sieć o dostatecznie dużej przepustowości.
 
 Część istniejących rozwiązań tego problemu oparta jest na podmianie klasycznych kompilatorów przez specjalne wersje i jest przez to ukierunkowana na jeden język programowania. Inne zaś nie gwarantują wystarczającej automatyzacji procesu, wymagając od użytkownika zapewnienia dzielonej przestrzeni dyskowej, synchronizacji czasu na zdalnych maszynach lub instalowania specyficznego oprogramowania, nieraz bardzo mocno ingerującego w działanie lub bezpieczeństwo systemu.
 
@@ -40,7 +46,7 @@ System ma rozwiązywać problem kompilacji bardzo złożonych projektów informa
 
 Istniejące rozwiązania, które stanowiłyby konkurencję dla opisywanego systemu, dzielą się na bardzo złożone systemy, niemal niemożliwe do zastosowania przy ograniczonych nakładach na konfigurację i utrzymanie ich działania, oraz na takie, które nie pozwalają na ich użycie poza środowiskiem komputerów połączonych w sieć lokalną z działającym sieciowym (lub rozproszonym) systemem plików.
 
-Osobną grupę stanowią wyspecjalizowane programy, zdolne do budowania kodu napisanego w jednym języku programowania. Nie pozwalają one również na wykonywanie innych zadań na zdalnych maszynach. Właśnie z powodu braku ogólności i oddzielenia od języka programowania, w jakim napisano kod do zbudowania, powinno się je traktować raczej jako specjalne wersje kompilatorów.
+Osobną grupę stanowią wyspecjalizowane programy, zdolne do budowania kodu napisanego w jednym języku programowania. Nie pozwalają one na wykonywanie innych zadań na zdalnych maszynach. Właśnie z powodu braku ogólności i oddzielenia od języka programowania, w jakim napisano kod do zbudowania, powinno się je traktować raczej jako specjalne wersje kompilatorów.
 
 \section{Cele}
 
@@ -50,9 +56,13 @@ System ma również wykorzystywać istniejące mechanizmy zdalnego wykonywania p
 
 System ma przyspieszać kompilację złożonych projektów informatycznych poprzez zrównoleglenie tego procesu ponad możliwości zapewniane przez pojedynczy komputer. Opis zależności i działań potrzebnych do ukończenia procesu budowania będzie zgodny z istniejącym standardem programu GNUMake.
 
+\subsection{Ograniczenia zakresu projektu}
+
+Nie jest celem projektu, ani wymaganiem odnośnie systemu zapewnianie uniwersalnej infrastruktury lub frameworku dla rozproszonych obliczeń, które składają się z zadań powiązanych zależnościami. Nadrzędnym zastosowaniem gotowego systemu ma być kompilacja projektów programistycznych. Fakt implementacji dość uniwersalnego standardu opisu zadań jakim jest GNUMake umożliwia stosowanie systemu do innych celów, jednak późniejsze optymalizacje mogą uczynić system nieefektywnym przy rozwiązywaniu ogólnego problemu synchronizacji zadań powiązanych zależnościami.
+
 \section{Użytkownicy}
 
-Dużą grupę odbiorców i potencjalnych użytkowników znajdujemy w społeczności OpenSource, w szczególności grupach związanych z różnymi dystrybucjami rozpowszechniającymi paczki z oprogramowaniem w postaci binarnej. Takie grupy bardzo często nie dysponują wyspecjalizowanymi maszynami do budowania kodu. Dzięki funkcjonalności zapewnianej przez nasz system będzie możliwe zbudowanie sieci komputerów wykonujących kompilacje kodu w rozsądnym czasie przy pomocy domowych komputerów połączonych przez Internet.
+Dużą grupę odbiorców i potencjalnych użytkowników znajdujemy w społeczności Open Source, w szczególności grupach związanych z różnymi dystrybucjami rozpowszechniającymi paczki z oprogramowaniem w postaci binarnej. Takie grupy bardzo często nie dysponują wyspecjalizowanymi maszynami do budowania kodu. Dzięki funkcjonalności zapewnianej przez nasz system będzie możliwe zbudowanie sieci komputerów wykonujących kompilacje kodu w rozsądnym czasie przy pomocy domowych komputerów połączonych przez Internet.
 
 Zgodność z istniejącym standardem GNUMake pozwala na stosowanie systemu jako zamiennika dla istniejących rozwiązań lokalnej kompilacji kodu bez ponoszenia kosztów zmiany.
 
