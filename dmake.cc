@@ -1,9 +1,13 @@
 
+#include <iostream>
+
 #include "dbparser.h"
 #include "worker.h"
 #include "dispatcher.h"
 
 int main()
 {
-  return 0;
+	Messaging m;
+	std::vector<Worker*> workers = get_workers(&m);
+	return 0;
 }

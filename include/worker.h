@@ -58,4 +58,9 @@ class SshWorker : public Worker {
 		void BuildTarget(Target* target);
 };
 
+/** Returns vector of workers, based on file ".yadmake/hosts"
+ * in home directiory. The file should consist of names of hosts
+ * and working directories */
+std::vector<Worker *> get_workers(Messaging* msg_parent);
+
 #endif  //  _WORKER_H

@@ -20,6 +20,15 @@ class CircularDependency : public std::runtime_error {
 		CircularDependency() : std::runtime_error("cycle in dependencies") {}
 };
 
+/**
+ * An exception thrown by count_commands if make -n
+ * exits with error.
+ */
+class MakeError : public std::runtime_error {
+	public:
+		MakeError(const std::string& what): std::runtime_error(what) {}
+};
+
 /** Holds DAG representing all targets and dependencies between them. */
 class DependencyGraph {
 	public:
@@ -39,6 +48,14 @@ class DependencyGraph {
 		 */
 		void TrimToTargets(std::vector<std::string> targets);
 		
+		/**
+		 * Adds commands to targets.
+		 * @basic can contain for example 'make', 'aim', '-o', 'ready_aim'.
+		 * @delimiter seems to be blah always
+		 */
+		void CountCommands( const std::vector<std::string>& basics,
+				const std::string& delimiter);
+
 		/**
 		 * Builds DependencyGraph from MakefileDB.
 		 * @param is reference to std::istream used to read MakefileDB
@@ -63,15 +80,24 @@ class DependencyGraph {
 		void TopologicalSort();
 		void RemoveNotMarkedTargets();
 		void DeleteBlah();
+	private:
+		/* Shares targets into levels.
+		 * Leafs have level 0 and so on. */
+		std::vector<std::vector<Target*> > GetLevels();
+		/* Adds commands to targets at one level (to_make).
+		 * Targets at previous level should be in not_to_make.
+		 * @Delimiter is the additional target printing its name.
+		 * @Basics contains make, -n and options from command line.
+		 */
+		void CountOneLevel(const std::vector<std::string>& basics,
+				const std::string& delimiter,
+				const std::vector<Target*>& to_make,
+				const std::vector<Target*>& not_to_make);
 };
 
 /** Holds single target together with receipes to build. */
 class Target {
 	friend class DependencyGraph;
-	friend std::vector<std::vector<Target*> > get_levels(DependencyGraph* graph);
-	friend void count_one_level(const std::vector<std::string>& basics,
-			const std::string& delimiter, const std::vector<Target*>& to_make,
-			const std::vector<Target*>& not_to_make);
 
 	public:
 		/** Integer value unique to each Target. */

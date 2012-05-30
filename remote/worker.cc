@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <utility>
+#include <vector>
+#include <fstream>
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
@@ -226,4 +228,36 @@ pair<Target*, Worker*> Messaging::GetJob() {
 		throw runtime_error("msgrcv() failure");
 
 	return make_pair(job.target, job.worker);
+}
+
+std::vector<Worker *> get_workers(Messaging* msg_parent) {
+
+	std::vector<Worker *> workers;
+
+	std::string home_path = getenv("HOME");
+	std::string hosts_path = home_path + "/.yadmake/hosts";
+	std::string config_path = home_path + "/.ssh/config";
+	
+	ifstream conf;
+	conf.open(hosts_path);
+
+	if (!conf.is_open())
+		throw runtime_error("Could not open file with available hosts. Please, chceck configuration.");
+
+	while (conf.good()) {
+
+		std::string host;
+		std::string cwd;
+
+		conf >> host;
+		if (!conf.good()) break;
+		conf >> cwd;
+
+		SshWorker * w = new SshWorker(host, cwd, msg_parent, config_path);
+		workers.push_back(w);
+	}
+
+	conf.close();
+
+	return workers;
 }
