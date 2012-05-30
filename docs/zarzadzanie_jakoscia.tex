@@ -1,4 +1,4 @@
-%% Plan zarządzania jakością
+%% IOP - plan zarządzania jakością
 %
 
 \documentclass[a4paper]{article}
@@ -27,17 +27,17 @@
 
 \begin{table}[!h]
 	\centering
-	\begin{tabular}{|c|c|c|c|}
+	\begin{tabular}{|c|c|c|p{9cm}|}
 		\hline
-		\textbf{Data} & \textbf{Wersja} & \textbf{Opis zmian} & \textbf{Autorzy} \\ \hline
-		25/03/2012 & 1 & Wstępna wersja dokumentu & Mateusz Machalica \\ \hline
-		25/05/2012 & 2 & Dodano wstęp & Mateusz Machalica \\ \hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
+		25/03/2012 & 1 & Mateusz Machalica & Wstępna wersja dokumentu \\ \hline
+		25/05/2012 & 2 & Mateusz Machalica & Dodano wstęp, opis wymagań dotyczących modularności i dokumentacji kodu \\ \hline
 	\end{tabular}
 \end{table}
 
 \section{Wstęp}
 
-Celem tego dokumentu jest ustalenie standardów zarządzania jakością kodu oraz dokumentacji i sposobów sprawdzania zgodności systemu z wymaganiami pozafunkcjonalnymi.
+Celem tego dokumentu jest ustalenie standardów zarządzania jakością gotowego systemu, kodu źródłowego oraz dokumentacji i sposobów sprawdzania zgodności systemu z wymaganiami funkcjonalnymi i pozafunkcjonalnymi.
 
 \section{Kod źródłowy}
 
@@ -55,6 +55,30 @@ Do weryfikacji zgodności kodu z przyjętymi standardami przed każdym wydaniem 
 Jedyną formą zgłaszania błędów przez funkcje/metody są wyjątki. Nie dopuszczamy ustawiania pewnych globalnych flag ani zwracania wartości NULL, a wszystkie błędy zgłaszane przez wywoływane funkcje systemowe lub inne, nie obsługujące zgłaszania wyjątków, powinny być przekazywane dalej również w formie wyjątków.
 
 Wyjątki, których wystąpienie jest związane z działaniem danej funkcji, a które nie zostały zadeklarowane w pliku nagłówkowym biblioteki standardowej \verb+stdexcept+ powinny być zadeklarowane w tym samym pliku nagłówkowym co funkcja, która może taki wyjątek podnieść. Ponadto wymaga się, aby każdy wyjątek dziedziczył z jednego z wyjątków zadeklarowanych w \verb+stdexcept+.
+
+\subsection{Dokumentacja kodu}
+
+W każdym module, każda funkcja, metoda i każda zmienna, z której nazwy jasno nie wynika, jakie dane przechowuje i która nie jest zmienną lokalną, powinna zostać opatrzona komentarzem z wyjaśnieniem jej przeznaczenia, który jest zgodny z formatem komentarzy dla systemu generującego automatyczną dokumentację dla kodu.
+
+Każda funkcja i metoda, która wymaga dokumentacji, powinna deklarować w sposób zrozumiały dla systemu automatycznego generowania dokumentacji, czym jest wartość zwracana i co reprezentują parametry, jakie wyjątki mogą zostać podniesione podczas wywołania oraz jakie są efektu uboczne wywołania.
+
+Każda klasa powinna zostać krótko opisana (jakie dane lub zasoby reprezentuje) w formacie zrozumiałym dla systemu generowania dokumentacji kodu.
+
+Zaleca się również komentowanie nietrywialnych rozwiązań w kodzie, lecz z braku jednoznacznej miary nietrywialności reguła ta pozostaje jedynie zaleceniem.
+
+Jako generatora dokumentacji używamy programu Doxygen.
+
+\subsection{Modularność}
+
+Musimy zagwarantować dużą modularność systemu, aby móc uzyskać cele założonych w wizji projektu, miedzy innymi możliwość działania w oparciu o różne protokoły komunikacyjne, oraz różne sposoby synchronizacji plików źródłowych i celów w zależności od dostępnej infrastruktury sieci łączącej komputery uczestniczące w procesie komunikacji.
+
+Z tego powodu wymagamy, aby każdy moduł programu, który w opisie architektury systemu został sklasyfikowany, jako wymienialny w zależności od środowiska w jakim ma działać system, implementował interfejs (dziedziczył z klasy abstrakcyjnej), który ma zostać zaprojektowany jeszcze w fazie ustalania architektury systemu, nie podczas implementacji danego modułu.
+
+Chcemy uniknąć sytuacji, w której implementujący dany moduł dostosuje ów interfejs do potrzeb własnego modułu, utrudniając lub wręcz uniemożliwiając późniejszą integrację modułów lub implementację modułów-zamienników.
+
+Z tego powodu dopuszczamy we wczesnych iteracjach projektu, aby konkretne implementacje abstrakcyjnych interfejsów zawierały metody z niepełną implementacją, jeśli implementacja tych metod nie jest potrzebna w programie.
+
+Każda metoda, która ma niepełną implementację (celowo nie implementuje swojej funkcjonalności) musi zaraz po wywołaniu podnosić wyjątek dziedziczący z \verb+std::runtime_error+ i zawierać w komentarzu słowa kluczowe ,,NOT IMPLEMENTED'', natomiast w komentarzu zawierającym opis metody dla generatora dokumentacji kodu musi znaleźć się odpowiednia informacja (w taki sposób, aby opis metody w wygenerowanej dokumentacji zawierał adnotację o niepełnej implementacji).
 
 \section{Poprawność}
 
@@ -81,10 +105,11 @@ Błędy zauważone poza powyżej opisanym procesem weryfikacji powinny być zgł
 
 Każde wydanie programu, powinno być dodatkowo testowane poprzez zbudowanie własnego kodu źródłowego (jako system budowania dla projektu wykorzystujemy GNUMake’a).
 
-\section{Wydajność}
+\section{Miary produktowe}
+
+\subsection{Wydajność}
 
 Z racji eksperymentalnego charakteru systemu nie znamy kanonicznych sposobów testowania wydajności dla podobnych systemów. W początkowej fazie nie zamierzamy optymalizować fragmentów programu, lecz program jako całość poprzez wybór odpowiednich protokołów komunikacyjnych i architektury systemu.
-
 Profilowanie poszczególnych fragmentów programu przewidujemy dopiero przed wydaniami stabilnymi.
 
 Jedyną miarą wydajności powinno być porównanie z programem GNUMake. Zamierzamy skrócić czas wykonywania celów zawartych w Makefile’ach, dla których możliwe jest zrównoleglanie procesu kompilacji, tak aby wykorzystywał pełną moc obliczeniową ponad trzech standardowych komputerów domowych.
@@ -97,4 +122,3 @@ W przypadku budowy projektów, których kompilacja nie może być zrównoleglona
 \end{thebibliography}
 
 \end{document}
-
