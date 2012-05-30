@@ -1,0 +1,179 @@
+%% IOP - wymagania projektu yadmake
+%
+
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{fullpage}
+\usepackage{graphicx}
+
+\title{Wymagania projektu ,,System rozproszonej kompilacji''}
+\author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|c|p{8cm}|}
+		\hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
+		19/03/2012 & 1 & Cały zespół & Wstępna wersja dokumentu \\ \hline
+		25/05/2012 & 2 & Mateusz Machalica & Aktualizacja scenariuszy alternatywnych, listy implementowanych opcji i wymagań odnośnie konfiguracji systemu \\ \hline
+		27/05/2012 & 3 & Mateusz Machalica & Dodano wstęp i przepisano dokument formalizując pojęcia oraz sam opis przypadków użycia \\ \hline
+	\end{tabular}
+\end{table}
+
+\section{Wstęp}
+
+Celem tego dokumentu jest opis wymagań funkcjonalnych i pozafunkcjonalnych dotyczących działania gotowego produktu.
+Nie specyfikujemy tutaj wymagań odnośnie kodu źródłowego, dokumentacji i procesu weryfikacji działania produktu. Wymagania te są opisane w ,,Planie zarządzania konfiguracją'' oraz ,,Planie zarządzania jakością'' projektu.
+
+\input{slownik_pojec.tex.inc}
+
+\section{Założenia wstępne}
+
+System wymaga, aby na każdej maszynie, zarówno zdalnej jak i jednostce koordynującej procesem konfiguracji był zainstalowany i skonfigurowany interpreter poleceń Bash, serwer i klient SSH oraz wszystkie programy, które byłyby potrzebne to lokalnego zbudowania projektu przy pomocy programu GNUMake.
+Dodatkowo na maszynie, na której jest wykonywany program, powinien być poprawnie zainstalowany GNUMake i lokalizacja jego pliku wykonywalnego powinna być dodana do zmiennej środowiskowej \verb+$PATH+.
+
+System plików na wszystkich maszynach uczestniczących w procesie kompilacji powinien obsługiwać zapisywanie czasów modyfikacji plików i zegary na tych maszynach powinny być zsynchronizowane, aby zapewnić poprawne uwzględnianie przez program, które cele zostały już wykonane, a które należy jeszcze wykonać.
+W przypadku, gdy powyższe warunki nie są spełnione program nie jest w stanie zapewnić, że podczas kompilacji nie będzie ponownie wykonywał już aktualnych celów.
+
+\section{Wymagania funkcjonalne}
+
+Podstawowe wymagania funkcjonalne dotyczące programu wynikają z jego docelowego zastosowania jako zamiennika programu GNUMake przy budowaniu złożonych projektów. Wymagania funkcjonalne zostały wyspecyfikowane poprzez przypadki użycia. Aktorzy występujący w scenariuszach to:
+\begin{itemize}
+	\item \emph{Użytkownik} -- osoba chcąca skompilować program przy użyciu programu
+	\item \emph{Jednostka koordynująca} -- centralny komputer na którym uruchamiana jest kompilacja i na który mają trafić wyniki działania programu
+	\item \emph{Jednostki pomocnicze} -- komputery, które pozostają do dyspozycji \emph{jednostki koordynującej} i na których można zdalnie wykonywać polecenia
+\end{itemize}
+
+Dla odróżnienia nazwy aktorów będą dalej pisane kursywą.
+
+\subsection{Scenariusze i przypadki użycia}
+
+Standardowy sposób użycia programu polega na uruchomieniu go w katalogu, w którym znajdują się pliki źródłowe potrzebne do wykonania opisu procesu kompilacji zawartego w pliku Makefile (również znajdującego się w katalogu). Przed uruchomieniem \emph{użytkownik} powinien skonfigurować program zgodnie z przypadkiem użycia opisanym poniżej.
+
+\subsubsection{Konfiguracja systemu}
+
+\begin{enumerate}
+	\item \emph{Użytkownik} wprowadza w pliku \verb+$PAHT/.yadmake+ nazwy hostów będących \emph{jednostkami pomocniczymi}.
+	\item \emph{Użytkownik} wprowadza w pliku \verb+$PAHT/.ssh/config+ parametry potrzebne do zdalnego połączenia przy pomocy SSH z hostami wprowadzonymi w poprzednim kroku. Format tego pliku jest niezależny od systemu rozproszonej kompilacji, stanowi część pakietu SSH.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz podstawowy}
+
+\begin{enumerate}
+	\item \emph{Użytkownik} rozpoczyna proces kompilacji przechodząc do katalogu zawierającego plik Makefile z opisem procesu kompilacji i wywołując program z opcjonalnymi argumentami opisanymi w dalszej części wymagań.
+	\item Program wykonuje polecenia potrzebne do wykonania domyślnych celów opisanych w pliku Makefile. Jeśli dowolny cel pośredni istnieje w systemie plików nie jest potrzebna jego aktualizacja, to znaczy jego data aktualizacji jest późniejsza niż daty aktualizacji wszystkich celów lub plików, od których zależy, to nie jest ponownie budowany.
+	\item Efekt jest taki, jak przy użyciu programu GNUMake. Zostają zbudowane wszystkie cele domyślne i dodatkowo wszystkie te cele, które według specyfikacji były potrzebne do zbudowania celi domyślnych, w trakcie kompilacji program wypisuje na standardowe wyjście wszystko co na standardowe wyjście wypisały programy wywoływane podczas procesu kompilacji, pliki wynikowe znajdują się w katalogu, w którym został wywołany program.
+	\item Program kończy z kodem wyjścia równym zero.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 1.}
+
+\begin{enumerate}
+	\item Nie udaje się nawiązać połączenia z niektórymi, ale nie wszystkimi z \emph{jednostek pomocniczych}.
+	\item System zgłasza komunikat o błędzie połączenia.
+	\item Program działa jak w scenariuszu standardowym na dostępnych \emph{jednostkach pomocniczych}.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 2.}
+
+\begin{enumerate}
+	\item Nie udaje się nawiązać połączenia z żadną z \emph{jednostek pomocniczych}.
+	\item System zgłasza komunikat o błędzie połączenia.
+	\item Kompilacją zostaje porzucona.
+	\item Program kończy z kodem wyjścia równym jeden.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 3.}
+
+\begin{enumerate}
+	\item Błąd składni w pliku Makefile.
+	\item Program wypisuje komunikatu błędu, zawierający opis błędu i wyjście programu GNUMake uruchomionego dla takiego pliku Makefile.
+	\item Kompilacją zostaje porzucona.
+	\item Program kończy z kodem wyjścia równym jeden.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 4.}
+
+\begin{enumerate}
+	\item Błąd kompilacji na jednej z \emph{jednostek pomocniczych}. Przyczyna błędu może być dowolna, jednak nie związana z problemami z łącznością z danym komputerem. Dopuszczamy zatem w tym przypadku użycia jedynie błędy, które wystąpiłyby również przy lokalnym wykonywani kompilacji przy pomocy programu GNUMake.
+	\item Dokończenie tworzenia równolegle kompilowanych celów na pozostałych \emph{jednostkach pomocniczych}.
+	\item Wypisanie komunikatu o błędzie i kodu wyjścia programu, który spowodował ten błąd.
+	\item Program kończy z kodem wyjścia równym dwa.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 5.}
+
+\begin{enumerate}
+	\item Błąd połączenia -- zerwanie już istniejącego połączenia lub niemożność wykonania polecenia na \emph{jednostce pomocniczej} spowodowana problemami ze zdalną komunikacją.
+	\item Kontynuacja procesu kompilacji jak w scenariuszu standardowym.
+\end{enumerate}
+
+\subsubsection{Użycie systemu -- scenariusz alternatywny 6.}
+
+\begin{enumerate}
+	\item Plan wykonania kompilacji, który nie jest możliwy do wykonania, z powodu cyklu w zależnościach.
+	\item Program zachowuje się jak GNUMake -- jeśli choć jeden cel w cyklu musi być przebudowany, to wszystkie cele w cyklu będą przebudowane.
+	\item Kontynuacja procesu kompilacji jak w scenariuszu standardowym.
+\end{enumerate}
+
+\subsection{Opcje implementowane przez program}
+
+Program będzie implementował podzbiór opcji programu GNUMake oraz dodatkowe opcje sterujące procesem kompilacji na zdalnych maszynach.
+Wszystkie opcje mają być zgodne z formatem \verb+getopts+ (w wersji POSIX, a zatem bez długich opcji w stylu GNU).
+Implementowane opcje:
+
+\begin{itemize}
+	\item \verb+-k+ -- nie kończy procesu budowania przy pierwszym błędzie, ale kontynuuje kompilację celów, na których kompilację pozwalają wykonane już zależności
+	\item \verb+-B+ -- nie uwzględnia czasów modyfikacji celów i plików źródłowych, traktując wszystkie jako zmodyfikowane
+	\item \verb+-v+ -- program wypisuje wersję programu i natychmiast kończy działanie
+	%TODO implementowane opcje 
+\end{itemize}
+
+\section{Wymagania pozafunkcjonalne}
+
+\subsection{Wygoda}
+
+Jako zamiennik programu GNUMake system powinien obsługiwać taką samą składnię plików Makefile jak oryginał i udostępniać taki sam interfejs użytkownika, format komunikatów wypisywanych przez program będzie zachowywał zgodność z pierwowzorem tam, gdzie to możliwe, z racji rozszerzonej funkcjonalności.
+Jedyną wspieraną wersją językową będzie wersja angielska.
+
+\subsection{Bezpieczeństwo}
+
+W zależności od konfiguracji, można opisywać dwa przypadki użycia systemu, które istotnie różnią się wymaganiami odnośnie bezpieczeństwa.
+
+\subsubsection{Zaufana sieć (lokalna)}
+
+W przypadku wykorzystania systemu do budowy oprogramowania na zdalnych maszynach, znajdujących się w zaufanym środowisku, np. tej samej sieci lokalnej, nie wymaga się szyfrowania połączeń pomiędzy jednostką koordynującą a jednostkami pomocniczymi.
+
+\subsubsection{Niezaufane medium pośredniczące}
+
+W przypadku wykorzystania do komunikacji pomiędzy maszynami np. Internetu, wymagane jest pełne szyfrowanie, protokół zdalnego wykonywania zadań oraz wymiany plików źródłowych i wynikowych powinien zapewniać przynajmniej taką poufność i potwierdzenie tożsamości, jak protokół SSHv2.
+
+\subsection{Szybkość}
+
+Docelowo system ma przyspieszać kompilację projektów, które składają się z wielu niezależnych części i których kompilacja może zostać zrównoleglona w wystarczającym stopniu aby zniwelować opóźnienia spowodowane zdalną komunikacją maszyn uczestniczących w procesie kompilacji.
+Jeśli zaniedbać opóźnienia związane ze zdalną komunikacja przez sieć, wykonanie kompilacji przy pomocy systemu ma trać nie więcej niż $120\%$ czasu potrzebnego na wykonanie kompilacji przy pomocy programu GNUMake na pojedynczym komputerze.
+
+\subsection{Użyteczność}
+
+Z racji zamierzonej zgodności ze standardem (jakim są pochodne make’a) w większości wypadków nie będą potrzebne żadne modyfikacje do istniejących skryptów, obsługa programu nie będzie również wymagała zaznajamiania się z nowymi opcjami, zamierzamy implementować podzbiór opcji programu GNUMake i dodatkowo flagi regulujące działanie systemu koordynowania zadań na zdalnych maszynach.
+Korzystanie z pliku konfiguracyjnego klienta SSH do przechowywania opisu sposobu łączenia i uwierzytelniania z jednostkami pomocniczymi powoduje, że w wielu środowiskach konfiguracja systemu redukuje się do wybrania hostów opisanych w tym pliku jako jednostek pomocniczych.
+Takie rozwiązanie ułatwia również testowanie połączeń i zarządzanie kluczami uwierzytelniającymi.
+
+\subsection{Komunikaty o błędach}
+
+Komunikaty o błędach mają być takie same jak w programie GNUMake, dodatkowo komunikaty o niepoprawnej konfiguracji maszyn kompilujących, braku łączności lub innych problemach związanych ze zdalnym wykonywaniem zadań będą wypisywanie w terminalu, w którym zostanie wykonany program.
+Tak jak GNUMake, program będzie wypisywał wyjście wszystkich komend, które wykona celem zbudowania zawartości opisanej w pliku Makefile.
+
+\subsection{Estetyka}
+
+Z racji sposobu interakcji z użytkownikiem ten punkt nie stosuje się do opisywanego systemu.
+
+
+\end{document}
