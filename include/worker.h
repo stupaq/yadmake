@@ -17,6 +17,7 @@ class Worker {
 		 * Submits given target to this worker.
 		 * @param target pointer to target to build */
 		virtual void BuildTarget(Target* target) = 0;
+		virtual ~Worker() { };
 };
 
 /** Messaging primitive between dispatcher and worker. */
@@ -53,7 +54,7 @@ class SshWorker : public Worker {
 	public:
 		SshWorker(const std::string& hostname, const std::string& working_dir,
 				Messaging* msg_parent, const std::string& config_path = "");
-		virtual ~SshWorker();
+		~SshWorker();
 		void KillBuild();
 		void BuildTarget(Target* target);
 };
