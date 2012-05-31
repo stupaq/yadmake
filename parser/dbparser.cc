@@ -254,9 +254,14 @@ vector<vector<Target*> > DependencyGraph::GetLevels() {
 }
 
 void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& delimiter,
-      const vector<Target*>& to_make, const vector<Target*>& not_to_make) {
-   vector<string> options = basics;
+      const vector<Target*>& to_make_temp, const vector<Target*>& not_to_make) {
+   vector<Target*> to_make;
+   BOOST_FOREACH(Target* it, to_make_temp)
+	   if (it->kName_ != "blah")
+		   to_make.push_back(it);
    
+   vector<string> options = basics;
+
    BOOST_FOREACH(Target* it, to_make) {
       options.push_back(it->kName_);
       options.push_back(delimiter);
@@ -311,6 +316,13 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		  }
 		  else c_pos++;
 	  }
+
+	  /* check */
+	  std::cout << "Target: " << it->kName_ << std::endl;
+	  BOOST_FOREACH(string str, it->commands_)
+		  std::cout << str;
+	  std::cout << std::endl;
+	  /* end of check */
    }
 }
 
@@ -327,7 +339,7 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
    CountOneLevel(n_basics, delimiter, *levels.begin(), vector<Target*>());
    for (vector<vector<Target*> >::iterator it = levels.begin() + 1;
          it != levels.end(); ++it)
-      CountOneLevel(n_basics, delimiter, *it, *(it - 1));
+	   CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
    ReinitInord();
 }
