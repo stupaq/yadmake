@@ -17,6 +17,7 @@ class Worker {
 		 * Submits given target to this worker.
 		 * @param target pointer to target to build */
 		virtual void BuildTarget(Target* target) = 0;
+		virtual ~Worker() {};
 };
 
 /** Messaging primitive between dispatcher and worker. */
@@ -71,14 +72,19 @@ class SshWorker : public Worker {
 		 * @param config_path  path to SSH configuration file, dafults to ~/.ssh/config */
 		SshWorker(const std::string& hostname, const std::string& working_dir,
 				Messaging* msg_parent, const std::string& config_path = "");
-		virtual ~SshWorker();
 		/**
 		 * NOT IMPLEMENTED */
+		~SshWorker();
 		void KillBuild();
 		/**
 		 * Schedules build of given target on this worker, return immediately
 		 * @param target pointer to target to be submitted */
 		void BuildTarget(Target* target);
 };
+
+/** Returns vector of workers, based on file ".yadmake/hosts"
+ * in home directiory. The file should consist of names of hosts
+ * and working directories */
+std::vector<Worker *> get_workers(Messaging* msg_parent);
 
 #endif  //  _WORKER_H
