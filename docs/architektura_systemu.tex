@@ -1,0 +1,122 @@
+%% IOP - architektura systemu
+%
+
+\documentclass[a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage{fullpage}
+\usepackage{graphicx}
+
+\title{Opis architektury do projektu ,,System rozproszonej kompilacji''}
+\author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|c|p{8cm}|}
+		\hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
+		19/03/2012 & 1 & Marta Drozdek & Dokumentacja pierwszego projektu architektury w formie diagramu modułów \\ \hline
+		30/05/2012 & 2 & Mateusz Machalica & Opis architektury systemu, nowe diagramy podziału na podsystemy i moduły oraz diagramy przepływu \\ \hline
+	\end{tabular}
+\end{table}
+
+\section{Wstęp}
+
+Celem tego dokumentu jest opis architektury systemu i decyzji projektowych podjętych celem spełnienia wymagań pozafunkcjonalnych.
+Wymagania dotyczące systemu zostały sformułowane w osobnym dokumencie -- ,,Wymaganiach projektu''.
+
+\input{slownik_pojec.tex.inc}
+
+\section{Ogólne założenia odnośnie architektury systemu}
+
+Architektura systemu powinna zapewniać łatwość w rozszerzaniu możliwości działania systemu przy użyciu równych mechanizmów zdalnego wykonywania poleceń i synchronizacji plików.
+Dlatego też te podsystemy powinny składać się z modułów implementujących wspólny interfejs, niezależny od technologii komunikacyjnej użytej do implementacji funkcjonalności danego modułu.
+
+\section{Podział na podsystemy}
+
+Poniżej prezentujemy diagram podziału systemu na podsystemy i moduły, po nim następuje opis każdego podsystemu i zawartych w nim modułów.
+
+%TODO diagram podsystemów i modułów
+
+\subsection{Podsystem identyfikowania celów i budowy grafu zależności}
+
+Zadaniem tego podsystemu jest wyekstrachowanie z pliku Makefile struktury grafu zależności, to znaczy nazw celów i zależności pomiędzy nimi i zbudowanie grafu, w którym wierzchołkami są cele, a krawędź skierowana (A, B) należy do grafu wtedy i tylko wtedy, gdy B zależy od A.
+W praktyce w grafie będziemy trzymać zarówno krawędzie jak zdefiniowano powyżej jak i krawędzie odwrócone, jako osobne zbiory krawędzi.
+
+Celem zachowania zgodności z ,,implicit targets'' zdefiniowanymi w standardzie GNUMake, system wykorzystuje do identyfikacji celów i zależności sam program GNUMake, który umożliwia wykonanie na standardowe wyjście zrzutu bazy danych tworzonej na podstawie pliku Makefile, która zawiera pełną informację potrzebną do zbudowania celów opisanych pliku Makefile.
+Parsując zrzut bazy danych jesteśmy w stanie odtworzyć strukturę drzewa zależności.
+
+Po zbudowaniu grafu podsystem sprawdza, czy nie ma w nim cyklu zależności i jeśli jest, to zgłasza błąd informując, że takowy cykl wykrył.
+
+\subsection{Podsystem zbierania reguł dla celów i zarządzania aktualnymi celami}
+
+%TODO
+
+\subsection{Podsystem optymalizacji grafu kompilacji}
+
+%TODO
+
+\subsection{Podsystem tworzenia celów i koordynowania procesu kompilacji}
+
+%TODO
+
+\subsection{Podsystem zdalnego wykonywania poleceń}
+
+Każdy protokół zdalnego wykonywania poleceń, jaki uznajemy za odpowiedni do użycia w projekcie, działa w architekturze klient-serwer, gdzie klientem jest komputer zlecający wykonanie polecenia, w naszym przypadku jednostka koordynująca, natomiast rolę serwera pełni jednostka pomocnicza.
+
+Chcemy przenieść ten modela na interakcję podsystemu tworzenia celów i podsystemu zdalnego wykonywania poleceń.
+Do dyspozycji podsystemu koordynującego proces kompilacji będzie pozostawała pewna pula obiektów reprezentujących lokalne procesy, które są połączone przy pomocy dostępnych środków komunikacyjnych (SSH lub RSH) z jednostkami pomocniczymi.
+Każdy obiekt z tej puli udostępnia, niezależnie od wykorzystywanego środka komunikacji, taki sam interfejs do zlecania wykonania pewnych zadań, odbierania wyników tych zadań (ewentualnie informowania o błędach), a także wymuszania zakończenia realizacji danego zadania.
+
+Zadania zlecone takiemu obiektowi są realizowane na jednostce kompilującej i po zakończeniu wykonania, wyniki są przesyłane do jednostki koordynującej.
+Obiekt informuje o powodzeniu lub błędzie (podając przyczynę) wykonania zadania i zgłasza gotowość do ponownego użycia.
+
+Chcemy jeszcze raz podkreślić, że interfejs udostępniany przez różne moduły realizujące zdalne wykonywanie poleceń ma być identyczny, podsystem koordynowania procesu kompilacji nie musi zatem rozróżniać obiektów pochodzących z różnych modułów.
+
+Celem redukcji nakładu pracy i ryzyka popełnienia błędów rzutujących na bezpieczeństwo systemu, do implementacji poniższych modułów modułu zaleca się wykorzystanie istniejących bibliotek.
+
+\subsubsection{Moduł obsługi SSH}
+
+Jednym z modułów zapewniających zdalne wykonywanie poleceń jest moduł wykorzystujący do komunikacji protokół SSHv2.
+Moduł ten powinien być stosowany do komunikacji w sieciach rozległych lub gdy komunikacja nie powinna być podsłuchiwana, a nie mamy zaufania do wykorzystywanej infrastruktury sieciowej.
+Coraz częściej SSH jest jedynym dostępnym rozwiązaniem 
+
+\subsubsection{Moduł obsługi RSH}
+
+Docelowo zamierzamy dostarczać możliwość wykorzystania RSH do komunikacji w zaufanej sieci lokalnej.
+Coraz częściej jednak oprogramowanie to nie jest instalowane z racji niskiego poziomu bezpieczeństwa, stąd moduł ten zostanie zaimplementowany w dalszych iteracjach projektu.
+
+\subsection{Podsystem synchronizacji plików}
+
+%TODO
+
+\section{Przepływ sterowania}
+
+%TODO diagram przepływu sterowania
+
+Proces tworzenia i przekształcania grafu do ostatecznej postaci jest zrealizowany na zasadzie modelu potoków i filtrów -- kolejne podsystemy łączą dane wejściowe .
+Wyjściem każdego etapu jest wzbogacona wersja grafu zależności stanowiąca jednocześnie jedno z wejść dla kolejnego etapu.
+Kolejne podsystemy działają na grafie sekwencyjnie, jednak nie ma to zauważalnego wpływu na wydajność programu, natomiast znakomicie ułatwia implementację.
+
+Z kolei w podsystemie koordynacji zadań przepływ sterowania rozdziela się na wiele procesów, przy czym podsystem koordynacji działa w trybie klienta, wysyłając do serwera -- podsystemu zdalnego wykonywania poleceń żądania (być może wiele na raz) i oczekując odpowiedzi.
+
+\section{Komunikacja pomiędzy podsystemami}
+
+Współdzielenie danych pomiędzy podsystemami realizujemy na zasadzie wspólnego repozytorium danych, jakim będzie graf kompilacji.
+Taki model zapewni wymaganą efektywność, gdyż dane o poszczególnych celach będą potrzebne w różnych przestrzeniach adresowych podprocesów realizujących budowę poszczególnych celów, w trudnych do przewidzenia momentach, uwarunkowanych działaniem sieci i jednostek pomocniczych, które z naszego punktu widzenia są zmiennymi losowymi.
+
+Ponadto graf stanowi stosunkowo dużą porcję informacji i przekazywania go w komunikatach pomiędzy podsystemami stanowiłoby duży narzut czasowy.
+
+Kolejnym argumentem przemawiającym za przyjęciem modelu repozytorium do współdzielenia danych jest jego naturalność dla tego systemu.
+Każdy kolejny podsystem korzysta z informacji zawartych w grafie (potencjalnie wprowadzając niewielkie modyfikacje).
+Sam obiekt grafu kompilacji jest kluczowym wyjściem dla jednych podsystemów i wejściem dla innych, można powiedzieć że działanie systemu ogranicza się tego przetwarzania grafu, stąd naturalnym wydaje się patrzenie na niego jak na główne repozytorium danych.
+
+Zlecanie zadań innym podsystemom odbywać się ma na zasadzie przesyłania komunikatów, a dokładniej wywoływania metod odpowiednich obiektów reprezentujących podsystemy.
+
+\end{document}
