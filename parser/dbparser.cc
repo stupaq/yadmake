@@ -1,6 +1,9 @@
 #include <cstdio>
 #include <cassert>
 
+#include <cctype>
+#include <fstream>
+#include <iostream>
 #include <list>
 #include <string>
 #include <sstream>
@@ -273,7 +276,7 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		const vector<Target*>& to_make_temp, const vector<Target*>& not_to_make) {
 	vector<Target*> to_make;
 	BOOST_FOREACH(Target* it, to_make_temp)
-		if (it->kName_ != "blah")
+		if (it->kName_ != delimiter)
 			to_make.push_back(it);
 
 	vector<string> options = basics;
@@ -296,8 +299,8 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		throw MakeError(commands_err);
 
 	size_t pos = 0;
-	string delima = "make: `blah' is up to date.";
-	string delimb = "echo blah";
+	string delima = "make: `" + delimiter + "' is up to date.";
+	string delimb = "echo " + delimiter;
 	BOOST_FOREACH(Target* it, to_make) {
 		size_t delima_pos = commands.find(delima, pos);
 		size_t delimb_pos = commands.find(delimb, pos);
@@ -325,26 +328,34 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		string delim = "\n";
 		size_t c_pos = 0;
 		while ((delim_pos = command.find(delim, c_pos)) != string::npos) {
-			string to_push = command.substr(c_pos, delim_pos + delim.length() - c_pos);
+			string to_push_temp = command.substr(c_pos, delim_pos - c_pos);
+			size_t begin = 0;
+			size_t end = to_push_temp.size();
+			while (end > 0 && isspace(to_push_temp[end - 1]))
+				--end;
+			while (begin < end && isspace(to_push_temp[begin]))
+				++begin;
+			string to_push = to_push_temp.substr(begin, end - begin);
 			if (to_push != "") {
 				it->commands_.push_back(to_push);
 				c_pos = delim_pos + delim.length();
 			}
 			else c_pos++;
 		}
-
-		/* check */
-		std::cout << "Target: " << it->kName_ << std::endl;
-		BOOST_FOREACH(string str, it->commands_)
-			std::cout << str;
-		std::cout << std::endl;
-		/* end of check */
 	}
 }
 
 
 void DependencyGraph::CountCommands(const vector<string>& basics,
 		const string& delimiter) {
+
+	system("cp Makefile DMakefile");
+
+	FILE *makefile;
+	makefile = fopen("Makefile", "a");
+	string code = "\n" + delimiter + ":\n\t@echo " + delimiter + "\n";
+	fputs(code.c_str(), makefile);
+	fclose(makefile);
 
 	vector<string> n_basics = basics;
 	n_basics.push_back("-n");
@@ -358,6 +369,9 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();
+
+	remove("Makefile");
+	rename("DMakefile", "Makefile");
 }
 
 

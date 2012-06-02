@@ -15,7 +15,13 @@ using namespace boost;
 using namespace boost::iostreams;
 
 /* Creates arguments suitable for command line from a vector */
-char** get_args(const vector<string>& v_args) {
+char** get_args(const string& programme, const vector<string>& argv) {
+
+	vector<string> v_args;
+	v_args.push_back(programme);
+	v_args.resize(argv.size() + 1);
+	copy(argv.begin(), argv.end(), v_args.begin() + 1);
+
 	char** args = new char*[v_args.size() + 1];
 	for (size_t i = 0; i < v_args.size(); ++i) {
 		args[i] = new char[v_args[i].size() + 1];
@@ -29,7 +35,7 @@ char** get_args(const vector<string>& v_args) {
 
 std::pair<string, string> exec(const string& programme, const vector<string>& arguments) {
 
-	char** args = get_args(arguments);
+	char** args = get_args(programme, arguments);
 	const char* prog = programme.c_str();
 	string result = "";
 	string result_err = "";
