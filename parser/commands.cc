@@ -1,10 +1,12 @@
-#include "exec.h"
-#include "dbparser.h"
 #include <vector>
 #include <list>
 #include <string>
 #include <stdexcept>
+#include <utility>
 #include <boost/foreach.hpp>
+#include "exec.h"
+#include "dbparser.h"
+#include "commands.h"
 
 using std::vector;
 using std::list;
@@ -51,7 +53,12 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
       options.push_back(it->kName_);
    }
 
-   string commands = exec("make", options);
+   std::pair<string, string> exec_result = exec("make", options);
+   string commands = exec_result.first;
+   string commands_err = exec_result.second;
+
+   if (commands_err !=  "")
+	   throw MakeError(commands_err);
 
    size_t pos = 0;
    string delima = "make: `blah' is up to date.";
@@ -76,7 +83,20 @@ void count_one_level(const vector<string>& basics, const string& delimiter,
       	pos = delima_pos + delima.length() + 1;
 	  else
       	pos = delimb_pos + delimb.length() + 1;
-      it->command_ = command;
+
+	  if (command.substr(0, 6) == "make: ")
+      	command = "";
+
+	  string delim = "\n";
+	  size_t c_pos = 0;
+	  while ((delim_pos = command.find(delim, c_pos)) != string::npos) {
+		  string to_push = command.substr(c_pos, delim_pos + delim.length() - c_pos);
+		  if (to_push != "") {
+		  	it->commands_.push_back(to_push);
+		    c_pos = delim_pos + delim.length();
+		  }
+		  else c_pos++;
+	  }
    }
 }
 
