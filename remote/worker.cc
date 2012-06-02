@@ -80,7 +80,7 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 			session_->connect();
 			session_->userauthAutopubkey();
 		} catch (SshException e) {
-			msg_parent_->SendJob(NULL, NULL);
+			msg_parent_->Send(SshError);
 			throw e;
 		}
 
@@ -145,32 +145,31 @@ void SshWorker::do_run() {
 	int ret_val;
 
 	/* ready to start */
-	msg_parent_->SendJob(NULL, this);
+	msg_parent_->Send(WorkerReady, this);
 
-	pair<Target*, Worker*> p = msg_jobs_->GetJob();
-	Target* target = p.first;
+	Report r = msg_jobs_->Get();
 
 	try {
 		/* prepare, send commands and read response */
-		string commands = target->BuildBashScript(working_dir_);
+		string commands = r.target->BuildBashScript(working_dir_);
 		ret_val = exec(commands);
 	} catch(SshException e) {
-		msg_parent_->SendJob(NULL, this);
+		msg_parent_->Send(SshError, this, r.target);
 		throw e;
 	}
 
 	/* notify that we've done here */
 	if (ret_val == 0)
-		msg_parent_->SendJob(target, this);
+		msg_parent_->Send(TargetDone, this, r.target);
 	else
-		msg_parent_->SendJob(NULL, this);
+		msg_parent_->Send(TargetFailed, this, r.target);
 }
 
 void SshWorker::BuildTarget(Target* target) {
 	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
 
-		msg_jobs_->SendJob(target, NULL);
+		msg_jobs_->Send(NewJob, this, target);
 	}
 }
 
@@ -196,28 +195,22 @@ Messaging::~Messaging() {
 	msgctl(msgqid_, IPC_RMID, NULL);
 }
 
-struct msg_job {
-	long type;
-	Target* target;
-	Worker* worker;
-};
-
 #define msg_size(msg) (sizeof((msg))-sizeof((msg).type))
 
-void Messaging::SendJob(Target* target, Worker* worker) {
-	struct msg_job job = {1, target, worker};
+void Messaging::Send(enum Status status, Worker* worker, Target* target) {
+	Report r = {1, status, worker, target};
 
-	if (msgsnd(msgqid_, &job, msg_size(job), 0) < 0)
+	if (msgsnd(msgqid_, &r, msg_size(r), 0) < 0)
 		throw runtime_error("msgsnd() failure");
 }
 
-pair<Target*, Worker*> Messaging::GetJob() {
-	struct msg_job job;
+Report Messaging::Get() {
+	Report r;
 
-	if (msg_size(job) != msgrcv(msgqid_, &job, msg_size(job), 0, 0))
+	if (msg_size(r) != msgrcv(msgqid_, &r, msg_size(r), 0, 0))
 		throw runtime_error("msgrcv() failure");
 
-	return make_pair(job.target, job.worker);
+	return r;
 }
 
 std::vector<Worker *> get_workers(Messaging* msg_parent) {

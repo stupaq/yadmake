@@ -17,13 +17,15 @@ BOOST_AUTO_TEST_CASE(execute_students) {
 	Messaging* m = new Messaging();
 	SshWorker* w = new SshWorker("students", "~/Downloads/", m, "./tests/remote/ssh_config");
 
-	m->GetJob();
+	BOOST_CHECK(WorkerReady == m->Get().status);
+
 	w->BuildTarget(t);
 
-	pair<Target*, Worker*> p = m->GetJob();
+	Report r = m->Get();
 
-	BOOST_CHECK(t == p.first);
-	BOOST_CHECK(w == p.second);
+	BOOST_CHECK(TargetDone == r.status);
+	BOOST_CHECK(t == r.target);
+	BOOST_CHECK(w == r.worker);
 
 	delete w;
 	delete m;
