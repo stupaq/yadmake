@@ -15,7 +15,7 @@ $(ALL) : %.pdf : %.tex
 	$(TEX) $(TEXFLAGS) $<
 
 clean:
-	-rm -f *.log *.aux *.toc $(ALL)
+	-rm -f *.log *.aux *.toc *~ $(ALL)
 
 debug:
 	@echo $(SOURCES)

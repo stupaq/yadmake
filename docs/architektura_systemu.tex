@@ -22,7 +22,7 @@
 		\hline
 		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
 		19/03/2012 & 1 & Marta Drozdek & Dokumentacja pierwszego projektu architektury \\ \hline
-		30/05/2012 & 2 & Mateusz Machalica & Nowy opis architektury systemu, diagramy podziału na podsystemy i moduły oraz diagramy przepływu \\ \hline
+		30/05/2012 & 2 & Mateusz Machalica & Nowy opis architektury systemu, diagramy podziału na podsystemy i moduły oraz schemat przepływu sterowania \\ \hline
 	\end{tabular}
 \end{table}
 
@@ -42,7 +42,29 @@ Dlatego też te podsystemy powinny składać się z modułów implementujących 
 
 Poniżej prezentujemy diagram podziału systemu na podsystemy i moduły, po nim następuje opis każdego podsystemu i zawartych w nim modułów.
 
-%TODO diagram podsystemów i modułów
+\begin{figure}[h!t]
+	\centering
+	\includegraphics[width=450px]{architektura_podsystemy.png}
+	\caption{Schemat architektury systemu wraz z zależnościami pomiędzy modułami i podsystemami. Wyróżniono dwie dodatkowe warstwy -- zasoby, które nie są danymi wejściowymi i moduły dostępu do nich \label{fig:arch}}
+\end{figure}
+
+\subsection{Moduł interpretatora poleceń i sterownika}
+
+Zadaniem tego modułu jest podjęcie decyzji o rozpoczęciu kompilacji z odpowiednimi parametrami po przetworzeniu opcji przekazywanych w linii komend.
+Moduł ten wywołuje inne podsystemy w odpowiedniej kolejności po czym przekazuje sterowanie do podsystemu tworzenia celów i przejmuje z powrotem tuż przed zakończeniem programu.
+
+\subsection{Moduł konfiguracji}
+
+Zadaniem tego modułu jest odczytywanie konfiguracji i udostępnianie innym modułom i podsystemom.
+Z racji oddelegowania konfiguracji związanej z procesem łączenia i autoryzacją jednostek pomocniczych do pliku konfiguracyjnego klienta SSH, konfiguracja systemu sprowadza się do podania nazw hostów pełniących funkcje jednostek pomocniczych i dodatkowych informacji jak katalog tymczasowy, w którym można wykonywać zdalnie przepisy.
+
+W przyszłości dopuszczamy możliwość podawania w konfiguracji statycznych informacji o wydajności jednostek pomocniczych, na podstawie których podsystem koordynujący będzie decydował o rozdzielaniu zadań.
+
+\subsection{Moduł odpytywania programu GNUMake}
+
+Ze względów częstego odpytywania (wywoływania z odpowiednimi opcjami i parsowania wyników) programu GNUMake w podsystemie identyfikowania celów oraz podsystemie zbierania reguł i zarządzania aktualnymi celami, pomocnym okazało się stworzenie osobnego modułu, którego jedynym zadanie będzie usystematyzowanie komunikacji z programem GNUMake w formie wygodnego interfejsu.
+
+Ilekroć dalej piszemy, że podsystem lub moduł uzyskuje informacje od programu GNUMake, to w domyśle dopowiadamy, że dokonuje tego poprzez użycie tego modułu.
 
 \subsection{Podsystem identyfikowania celów i budowy grafu zależności}
 
@@ -66,9 +88,9 @@ Ponadto powyższe zachowanie jest zgodne z zachowaniem programu GNUMake w opisan
 
 Aby zapewnić jak największą zgodność z pierwowzorem i implementować wszystkie specyficzne możliwości programu GNUMake, jak ekspansja zmiennych i zmienne domyślne w plikach Makefile, do uzupełniania grafu zależności stosujemy informacje uzyskane od programu GNUMake wywołanego dla danego pliku Makefile.
 
-\subsection{Podsystem optymalizacji grafu kompilacji}
+\subsection{Moduł optymalizacji grafu kompilacji}
 
-Zadaniem tego podsystemu będzie optymalizacja gotowego grafu kompilacji.
+Zadaniem tego modułu będzie optymalizacja gotowego grafu kompilacji.
 Danymi wejściowymi będzie graf kompilacji utworzony przez podsystem identyfikacji celów i uzupełniony o reguły przez podsystem zbierania reguł.
 Efektem ma być zmodyfikowany graf opisujący równoważny proces kompilacji, to znaczy prowadzący do takich samych plików wynikowych.
 Dopuszczamy dowolne modyfikacje struktury grafu, jeśli nie narusza one poprawności, to znaczy ostateczny efekt wykonania kompilacji według nowego grafu ma być taki sam jak według grafu sprzed modyfikacji.
@@ -76,7 +98,7 @@ Dopuszczamy dowolne modyfikacje struktury grafu, jeśli nie narusza one poprawno
 Przykładowym sposobem optymalizacji może być skracanie ścieżek złożonych z celów, których kompilacje nie może być zrównoleglona.
 Poprzez potraktowanie ich jako jednego celu zyskujemy na szybkości kompilacje poprzez ograniczenie narzutów sieciowych i na dystrybucję zadań oraz synchronizację plików źródłowych.
 
-W początkowych wydaniach podsystem ten będzie nieobecny -- najpierw system ma działać poprawnie, dopiero potem zajmiemy się jego optymalizacją.
+W początkowych wydaniach moduł ten będzie nieobecny -- doążymy do tego, aby najpierw cały system działał poprawnie, dopiero potem zajmiemy się jego optymalizacją.
 
 \subsection{Podsystem tworzenia celów i koordynowania procesu kompilacji}
 
