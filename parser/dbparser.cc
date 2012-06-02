@@ -100,8 +100,11 @@ static inline Target*& access(unordered_map<string, Target*>& map,
 void DependencyGraph::Init(istream& is) {
 	/* parser internal flags */
 #define EMPTY_FLAG 1
+#define ACQUISITION_FLAG 2
 
 	/* some constants */
+	static const string stop_acquisition = "# GNU Make";
+	static const string start_acquisition = "# Files";
 	static const string not_a_target = "# Not a target:";
 	static const string not_proper_beginning = "#%.\t\n";
 
@@ -109,13 +112,10 @@ void DependencyGraph::Init(istream& is) {
 	typedef pair<string, Target*> nodes_type;
 	unordered_map<string, Target*> nodes;
 
-	string line = "";
-	/* skip until files tag */
-	while (is && line.find("# Files") != 0)
-		getline(is, line);
-
 	/* parse rules */
+	string line = "";
 	int skip_flags = 0;
+
 	while (is) {
 		getline(is, line);
 
@@ -151,9 +151,16 @@ void DependencyGraph::Init(istream& is) {
 				} else if (line.compare(not_a_target) == 0) {
 					/* skip 'Not a target' block */
 					skip_flags |= 1 << EMPTY_FLAG;
-				} 
+				} else if (line.find(stop_acquisition) == 0) {
+					/* stop acquisition */
+					skip_flags |= 1 << ACQUISITION_FLAG;
+				}
+			} else if (line.find(start_acquisition) == 0) {
+				/* start acquisition */
+				skip_flags &= ~(1 << ACQUISITION_FLAG);
 			}
 		} else {
+			/* new line after 'Not a target' block */
 			skip_flags &= ~(1 << EMPTY_FLAG);
 		}
 	}

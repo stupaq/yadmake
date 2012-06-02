@@ -18,13 +18,8 @@ int main(int argc, char* argv[]) {
 	}
 	pair<string, string> out = exec(make_command, args);
 
-	cerr << out.first << endl;
-
 	/* create graph */
 	DependencyGraph graph(out.first);
-
-	graph.DumpMakefile(cout);
-	return 0;
 
 	/* get commands */
 	const string delimiter = "16932741623941281427349182364";
