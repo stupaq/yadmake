@@ -69,10 +69,18 @@ class DependencyGraph {
 		 */
 		DependencyGraph(int fd);
 		/**
+		 * Builds DependencyGraph from MakefileDB.
+		 * @param str reference to string with MakefileDB
+		 * @throws CircularDependency
+		 */
+		DependencyGraph(const std::string& str);
+
+		/**
 		 * Dumps DependencyGraph to given stream in Makefile format.
 		 * @param os output stream
 		 */
 		void DumpMakefile(std::ostream& os);
+
 		virtual ~DependencyGraph();
 	protected:
 		std::vector<Target*> all_targets_;
