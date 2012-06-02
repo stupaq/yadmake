@@ -2,6 +2,8 @@
 #include <cassert>
 
 #include <cctype>
+#include <fstream>
+#include <iostream>
 #include <list>
 #include <string>
 #include <sstream>
@@ -347,6 +349,13 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 void DependencyGraph::CountCommands(const vector<string>& basics,
 		const string& delimiter) {
 
+	system("cp Makefile DMakefile");
+
+	FILE *makefile;
+	makefile = fopen("Makefile", "a");
+	fputs("\nblah:\n\t@echo blah\n", makefile);
+	fclose(makefile);
+
 	vector<string> n_basics = basics;
 	n_basics.push_back("-n");
 
@@ -359,6 +368,9 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();
+
+	remove("Makefile");
+	rename("DMakefile", "Makefile");
 }
 
 

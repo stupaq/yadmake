@@ -50,7 +50,7 @@ class DependencyGraph {
 		
 		/**
 		 * Adds commands to targets.
-		 * @basic can contain for example 'make', 'aim', '-o', 'ready_aim'.
+		 * @basic can contain for example ('aim', '-o', 'ready_aim').
 		 * @delimiter seems to be blah always
 		 */
 		void CountCommands( const std::vector<std::string>& basics,
