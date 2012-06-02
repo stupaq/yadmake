@@ -17,14 +17,14 @@ void error(){
 	exit(1);
 }
 
-std::vector<Worker *> get_ready_workers(const Messaging &m,
+std::vector<Worker *> get_ready_workers(Messaging *m,
     std::vector<Worker *> & broken_workers)
 {
   int n;
   std::vector<Worker *> result;
   Report r;
 
-  n = get_workers().size();
+  n = get_workers(m).size();
   
   for(int i = 0; i < n; ++i)
   {
@@ -32,10 +32,10 @@ std::vector<Worker *> get_ready_workers(const Messaging &m,
     switch (r.status)
     {
       case WorkerReady:
-        result.push_back(r->worker);
+        result.push_back(r.worker);
         break;
       case SshError:
-        broken_workers.push_back(r->worker)
+        broken_workers.push_back(r.worker);
         fprintf(stderr, "SshError during initialization\n");
         break;
       default:
@@ -51,7 +51,7 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 	std::vector<Worker *> free_workers;
   std::vector<Worker *> broken_workers;
 	std::vector<Target *> ready_targets;
-  Messaging m = new Messaging();
+  Messaging *m = new Messaging();
 	int child_count;
   Report report;
 
@@ -59,7 +59,7 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 
 	ready_targets = dependency_graph.leaf_targets_;
 
-  free_workers = get_ready_workers(broken_workers);
+  free_workers = get_ready_workers(m, broken_workers);
 
 	child_count = 0;
 
@@ -92,7 +92,7 @@ void Dispatcher(const DependencyGraph & dependency_graph,
         /* delete worker, repeat target */
         fprintf(stderr, "SshError during build\n");
         ready_targets.push_back(report.target);
-        broken_workers.push_back(report.target);
+        broken_workers.push_back(report.worker);
         break;
       case NewJob:
         /* wtf? TODO */
@@ -105,7 +105,7 @@ void Dispatcher(const DependencyGraph & dependency_graph,
       case WorkerDied:
         fprintf(stderr, "Worker Died much too early\n");
         ready_targets.push_back(report.target);
-        broken_workers.push_back(report.target);
+        broken_workers.push_back(report.worker);
         break;
       default:
         fprintf(stderr, "impossible is nothing\n");
@@ -115,9 +115,9 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 		std::cout << "while outside out" << std::endl;
 	}
 
-  BOOST_FOREACH(worker *w, free_workers)
+  BOOST_FOREACH(Worker *w, free_workers)
     delete w;
-  BOOST_FOREACH(worker *w, broken_workers)
+  BOOST_FOREACH(Worker *w, broken_workers)
     delete w;
   
   /* czy musze odbierac status zniszczenia? TODO */
