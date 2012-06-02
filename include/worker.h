@@ -39,7 +39,11 @@ class Messaging {
 	public:
 		Messaging();
 		Messaging(const Messaging& that) = delete;
+		/**
+		 * Messaging destructor removes underlying message queue.
+		 * Should never be invoked by worker process. */
 		~Messaging();
+
 		/**
 		 * Creates and submits Report to given messaging queue.
 		 * @param status Status of Report

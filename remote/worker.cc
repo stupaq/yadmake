@@ -7,6 +7,7 @@
 
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/wait.h>
 #include <signal.h>
 
 #include "libsshpp.hpp"
@@ -46,6 +47,8 @@ void do_kill_worker(int sig) {
 		/* close connection */
 		currentWorker->session_->disconnect();
 		delete currentWorker->session_;
+
+		currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
 
 		exit(0);
 	}
@@ -98,6 +101,9 @@ SshWorker::~SshWorker() {
 		/* kill worker */
 		if (kill(pid_, SIGTERM) < 0)
 			throw runtime_error("can't kill worker process");
+
+		/* wait unitl child process died */
+		waitpid(pid_, NULL, 0);
 
 		delete msg_jobs_;
 
@@ -191,8 +197,13 @@ Messaging::Messaging() {
 }
 
 Messaging::~Messaging() {
-	// FIXME reference counting
-	msgctl(msgqid_, IPC_RMID, NULL);
+	/* any worker should never destroy message queue,
+	 * this must be done by dispatching process */
+	if (currentWorker == NULL) {
+		msgctl(msgqid_, IPC_RMID, NULL);
+	} else {
+		throw runtime_error("Messaging destructor invoked in worker");
+	}
 }
 
 #define msg_size(msg) (sizeof((msg))-sizeof((msg).type))

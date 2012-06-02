@@ -28,6 +28,9 @@ BOOST_AUTO_TEST_CASE(execute_students) {
 	BOOST_CHECK(w == r.worker);
 
 	delete w;
+
+	BOOST_CHECK(WorkerDied == m->Get().status);
+
 	delete m;
 	delete t;
 }
