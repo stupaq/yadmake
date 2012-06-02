@@ -10,7 +10,6 @@ int main(int argc, char* argv[]) {
 	const string make_command = "make";
 	vector<string> args;
 	//TODO buggy exec
-	args.push_back(make_command);
 	args.push_back("-pq");
 	if (argc > 1) {
 		args.push_back("-C");
@@ -22,9 +21,9 @@ int main(int argc, char* argv[]) {
 	DependencyGraph graph(out.first);
 
 	/* get commands */
-	const string delimiter = "16932741623941281427349182364";
-	vector<string> targets;
-	graph.CountCommands(targets, delimiter);
+	const string delimiter = "blah";
+	vector<string> basics;
+	graph.CountCommands(basics, delimiter);
 
 	/* dump makefile */
 	graph.DumpMakefile(cout);

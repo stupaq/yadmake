@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cassert>
 
+#include <cctype>
 #include <list>
 #include <string>
 #include <sstream>
@@ -325,20 +326,20 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		string delim = "\n";
 		size_t c_pos = 0;
 		while ((delim_pos = command.find(delim, c_pos)) != string::npos) {
-			string to_push = command.substr(c_pos, delim_pos + delim.length() - c_pos);
+			string to_push_temp = command.substr(c_pos, delim_pos - c_pos);
+			size_t begin = 0;
+			size_t end = to_push_temp.size();
+			while (end > 0 && isspace(to_push_temp[end - 1]))
+				--end;
+			while (begin < end && isspace(to_push_temp[begin]))
+				++begin;
+			string to_push = to_push_temp.substr(begin, end - begin);
 			if (to_push != "") {
 				it->commands_.push_back(to_push);
 				c_pos = delim_pos + delim.length();
 			}
 			else c_pos++;
 		}
-
-		/* check */
-		std::cout << "Target: " << it->kName_ << std::endl;
-		BOOST_FOREACH(string str, it->commands_)
-			std::cout << str;
-		std::cout << std::endl;
-		/* end of check */
 	}
 }
 
