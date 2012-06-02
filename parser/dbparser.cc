@@ -276,7 +276,7 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		const vector<Target*>& to_make_temp, const vector<Target*>& not_to_make) {
 	vector<Target*> to_make;
 	BOOST_FOREACH(Target* it, to_make_temp)
-		if (it->kName_ != "blah")
+		if (it->kName_ != delimiter)
 			to_make.push_back(it);
 
 	vector<string> options = basics;
@@ -299,8 +299,8 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		throw MakeError(commands_err);
 
 	size_t pos = 0;
-	string delima = "make: `blah' is up to date.";
-	string delimb = "echo blah";
+	string delima = "make: `" + delimiter + "' is up to date.";
+	string delimb = "echo " + delimiter;
 	BOOST_FOREACH(Target* it, to_make) {
 		size_t delima_pos = commands.find(delima, pos);
 		size_t delimb_pos = commands.find(delimb, pos);
@@ -353,7 +353,8 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 
 	FILE *makefile;
 	makefile = fopen("Makefile", "a");
-	fputs("\nblah:\n\t@echo blah\n", makefile);
+	string code = "\n" + delimiter + ":\n\t@echo " + delimiter + "\n";
+	fputs(code.c_str(), makefile);
 	fclose(makefile);
 
 	vector<string> n_basics = basics;

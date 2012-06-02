@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
 	DependencyGraph graph(out.first);
 
 	/* get commands */
-	const string delimiter = "blah";
+	const string delimiter = "3344543508980989031231";
 	vector<string> basics;
 	graph.CountCommands(basics, delimiter);
 
