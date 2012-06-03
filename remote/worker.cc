@@ -153,22 +153,24 @@ void SshWorker::do_run() {
 	/* ready to start */
 	msg_parent_->Send(WorkerReady, this);
 
-	Report r = msg_jobs_->Get();
+	for(;;) {
+		Report r = msg_jobs_->Get();
 
-	try {
-		/* prepare, send commands and read response */
-		string commands = r.target->BuildBashScript(working_dir_);
-		ret_val = exec(commands);
-	} catch(SshException e) {
-		msg_parent_->Send(SshError, this, r.target);
-		throw e;
+		try {
+			/* prepare, send commands and read response */
+			string commands = r.target->BuildBashScript(working_dir_);
+			ret_val = exec(commands);
+		} catch(SshException e) {
+			msg_parent_->Send(SshError, this, r.target);
+			throw e;
+		}
+
+		/* notify that we've done here */
+		if (ret_val == 0)
+			msg_parent_->Send(TargetDone, this, r.target);
+		else
+			msg_parent_->Send(TargetFailed, this, r.target);
 	}
-
-	/* notify that we've done here */
-	if (ret_val == 0)
-		msg_parent_->Send(TargetDone, this, r.target);
-	else
-		msg_parent_->Send(TargetFailed, this, r.target);
 }
 
 void SshWorker::BuildTarget(Target* target) {
@@ -231,7 +233,7 @@ std::vector<Worker *> get_workers(Messaging* msg_parent) {
 	std::string home_path = getenv("HOME");
 	std::string hosts_path = home_path + "/.yadmake/hosts";
 	std::string config_path = home_path + "/.ssh/config";
-	
+
 	ifstream conf;
 	conf.open(hosts_path);
 

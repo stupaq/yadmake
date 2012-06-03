@@ -15,20 +15,26 @@ int main( */
 BOOST_AUTO_TEST_CASE(execute_students) {
 	Target* t = new Target("test.o");
 	Messaging* m = new Messaging();
-	SshWorker* w = new SshWorker("students", "~/Downloads/", m, "./tests/remote/ssh_config");
+	SshWorker* w1 = new SshWorker("students", "~/Downloads/", m, "./tests/remote/ssh_config");
+	SshWorker* w2 = new SshWorker("students", "~/Downloads/", m, "./tests/remote/ssh_config");
 
 	BOOST_CHECK(WorkerReady == m->Get().status);
+	BOOST_CHECK(WorkerReady == m->Get().status);
 
-	w->BuildTarget(t);
+	w1->BuildTarget(t);
+	w2->BuildTarget(t);
+	BOOST_CHECK(TargetDone == m->Get().status);
+	BOOST_CHECK(TargetDone == m->Get().status);
 
-	Report r = m->Get();
+	w1->BuildTarget(t);
+	w2->BuildTarget(t);
+	BOOST_CHECK(TargetDone == m->Get().status);
+	BOOST_CHECK(TargetDone == m->Get().status);
 
-	BOOST_CHECK(TargetDone == r.status);
-	BOOST_CHECK(t == r.target);
-	BOOST_CHECK(w == r.worker);
+	delete w1;
+	delete w2;
 
-	delete w;
-
+	BOOST_CHECK(WorkerDied == m->Get().status);
 	BOOST_CHECK(WorkerDied == m->Get().status);
 
 	delete m;
