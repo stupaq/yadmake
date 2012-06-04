@@ -35,7 +35,7 @@ void Target::AddDependency(Target* target) {
 	++inord_;
 }
 
-Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), inord_(0) {
+Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), inord_(0), is_target_(0) {
 }
 
 Target::~Target() {
@@ -60,6 +60,15 @@ void Target::MarkRealized(std::vector<Target*> &ready_targets) {
 		--(i->inord_);
 		if (i->inord_==0)
 			ready_targets.push_back(i);
+	}
+}
+
+void Target::MarkSubtreeIfTarget(bool if_target) {
+	if (is_target_ == if_target)
+		return;
+	is_target_ = if_target;
+	BOOST_FOREACH(Target * i, dependencies_) {
+		i->MarkSubtreeIfTarget(if_target);
 	}
 }
 
@@ -93,6 +102,19 @@ void DependencyGraph::ReinitInord() const {
 		if (t) {
 			t->inord_ = t->dependencies_.size();
 		}
+	}
+}
+
+void DependencyGraph::TrimToTargets(vector<string> targets) {
+	BOOST_FOREACH(Target * i, all_targets_) {
+		BOOST_FOREACH(string s, targets) {
+			if (s == i->kName_)
+				i->MarkSubtreeIfTarget(true);
+		}
+	}
+	BOOST_FOREACH(Target * i, all_targets_) {
+		if (!i->is_target_)
+			i->commands_.clear();
 	}
 }
 
@@ -239,13 +261,15 @@ void DependencyGraph::DumpMakefile(ostream& os) {
 		Target* currt = lvqueue.front();
 		lvqueue.pop();
 
-		os << currt->kName_ << ":";
-		BOOST_FOREACH(Target*& t, currt->dependencies_)
-			os << " " << t->kName_;
-		os << '\n';
-		BOOST_FOREACH(string& s, currt->commands_)
-			os << '\t' << s << '\n';
-		os << endl;
+		if (!currt->EmptyRules() || currt->kName_ == "all") {
+			os << currt->kName_ << ":";
+			BOOST_FOREACH(Target*& t, currt->dependencies_)
+				os << " " << t->kName_;
+			os << '\n';
+			BOOST_FOREACH(string& s, currt->commands_)
+				os << '\t' << s << '\n';
+			os << endl;
+		}
 
 		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
 			if (--t->inord_ == 0)
@@ -365,7 +389,11 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 	n_basics.push_back("-n");
 
 	vector<vector<Target*> > levels = GetLevels();
-	if (levels.empty()) return;
+	if (levels.empty()) {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
+		return;
+	}
 
 	CountOneLevel(n_basics, delimiter, *levels.begin(), vector<Target*>());
 	for (vector<vector<Target*> >::iterator it = levels.begin() + 1;
@@ -373,6 +401,9 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();
+	vector<string> targets;
+	targets.push_back("all");
+	TrimToTargets(targets);
 
 	remove("Makefile");
 	rename("DMakefile", "Makefile");

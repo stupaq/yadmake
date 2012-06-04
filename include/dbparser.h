@@ -43,7 +43,7 @@ class DependencyGraph {
 		void ReinitInord() const;
 
 		/**
-		 * If targets is not empty leaves in graph only targets
+		 * Leaves commands in graph only for targets
 		 * and their subtrees.
 		 */
 		void TrimToTargets(std::vector<std::string> targets);
