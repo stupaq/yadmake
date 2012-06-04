@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cassert>
-
 #include <cctype>
+
 #include <fstream>
 #include <iostream>
 #include <list>

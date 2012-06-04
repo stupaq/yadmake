@@ -1,14 +1,14 @@
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <sys/wait.h>
+#include <signal.h>
+
 #include <string>
 #include <stdexcept>
 #include <iostream>
 #include <utility>
 #include <vector>
 #include <fstream>
-
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <sys/wait.h>
-#include <signal.h>
 
 #include "libsshpp.hpp"
 
@@ -120,8 +120,10 @@ int SshWorker::exec(const string& comm) {
 	Channel commch(*session_);
 	commch.openSession();
 
+#ifdef WORKERS_DEBUG
+	cerr << "EXECUTING:\n\t" << comm << endl;
+#endif // WORKERS_DEBUG
 	commch.requestExec(comm.c_str());
-	cerr << "EXEC: " << comm << endl;
 
 	commch.sendEof();
 	/* read output */
@@ -139,7 +141,9 @@ int SshWorker::exec(const string& comm) {
 
 	/* get return value */
 	ret_val = commch.getExitStatus();
-	cerr << "RETVAL: " << ret_val << endl << endl;
+#ifdef WORKERS_DEBUG
+	cerr << "RETURN VALUE: " << ret_val << endl << endl;
+#endif // WORKERS_DEBUG
 
 	/* close chanell */
 	commch.close();
