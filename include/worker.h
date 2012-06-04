@@ -1,6 +1,8 @@
 #ifndef _WORKER_H
 #define _WORKER_H
 
+#define WORKERS_DEBUG
+
 #include <sys/types.h>
 
 #include "libsshpp.hpp"
