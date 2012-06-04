@@ -109,7 +109,7 @@ void DependencyGraph::Init(istream& is) {
 	static const string stop_acquisition = "# GNU Make";
 	static const string start_acquisition = "# Files";
 	static const string not_a_target = "# Not a target:";
-	static const string not_proper_beginning = "#%.\t\n";
+	static const string not_proper_beginning = "-@(#%.\t\n";
 
 	/* a map for tracking nodes */
 	typedef pair<string, Target*> nodes_type;

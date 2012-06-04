@@ -9,7 +9,6 @@ int main(int argc, char* argv[]) {
 	/* read MakefileDB */
 	const string make_command = "make";
 	vector<string> args;
-	//TODO buggy exec
 	args.push_back("-pq");
 	if (argc > 1) {
 		args.push_back("-C");
