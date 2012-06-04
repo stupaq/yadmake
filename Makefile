@@ -1,7 +1,7 @@
 # versatile Makefile
 CXX			:= g++ -I include
-CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x -lboost_iostreams -lssh
-LDFLAGS		:= -Wall -lboost_iostreams -lssh
+CXXFLAGS	:= -Wall -Wextra -pedantic -std=gnu++0x
+LDFLAGS		:= -Wall -lboost_iostreams -lboost_unit_test_framework -lssh
 
 # sources
 SOURCES		:= $(shell find -name "*.cc")
@@ -20,8 +20,8 @@ all: $(DEPENDS) $(ALL)
 
 # create submakefiles
 $(DEPENDS) : %.d : %.cc
-	$(CXX) $(CXXFLAGS) -MM $< > $@
-	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< >> $@
+	$(CXX) $(CXXFLAGS) -MT $(<:.cc=.o) -MM $< > $@
+	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< -o $(<:.cc=.o) >> $@
 
 # link objects
 $(ALL) : % : %.o $(OBJECTS)
