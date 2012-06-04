@@ -24,7 +24,6 @@ std::string temp;
 options result;
 result.err = 0;
 result.keep_going = 0;
-forward.push_back("make");
   
 while ((c = getopt (argc, argv, opt)) != -1) {
   switch (c) {
