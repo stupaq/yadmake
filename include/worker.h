@@ -20,21 +20,41 @@ class Worker {
 		virtual ~Worker() {};
 };
 
-/** Messaging primitive between dispatcher and worker. */
+/** Enum representing Report status */
+enum Status {WorkerReady, SshError, NewJob, TargetDone, TargetFailed, WorkerDied};
+
+/** Report that can be send through Messaging */
+struct Report {
+	long type;
+	enum Status status;
+	Worker* worker;
+	Target* target;
+};
+
+/** Messaging primitive between dispatcher and worker.
+ * Note that no worker process should invoke destructor of Messaging object. */
 class Messaging {
 	private:
 		int msgqid_;
 	public:
 		Messaging();
+		Messaging(const Messaging& that) = delete;
+		/**
+		 * Messaging destructor removes underlying message queue.
+		 * Should never be invoked by worker process. */
 		~Messaging();
+
 		/**
-		 * Submits job to given messaging queue.
-		 * @param target pointer to target to build */
-		void SendJob(Target* target, Worker* worker);
+		 * Creates and submits Report to given messaging queue.
+		 * @param status Status of Report
+		 * @param worker worker that issued a Report
+		 * @param target target that was processed when issuing a Report */
+		void Send(enum Status status, Worker* worker = NULL, Target* target = NULL);
+
 		/**
-		 * Gets first job and worker that made it from queue.
-		 * @return pointerst to target and worker */
-		std::pair<Target*, Worker*> GetJob();
+		 * Gets first Report from given messaging queue.
+		 * @return first Report from queue */
+		Report Get();
 };
 
 /** Worker implementation using SSH
