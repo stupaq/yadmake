@@ -41,6 +41,10 @@ Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), in
 Target::~Target() {
 }
 
+bool Target::EmptyRules() {
+	return commands_.empty();
+}
+
 std::string Target::BuildBashScript(const std::string& working_dir) {
 	stringstream ss;
 

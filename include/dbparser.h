@@ -120,6 +120,11 @@ class Target {
 		void AddDependency(Target* target);
 
 		/**
+		 * Determines whether there's something to do within target.
+		 * @return true if target should be rebuild */
+		bool EmptyRules();
+
+		/**
 		 * Constructs string containing bash script that executes commands for this target
 		 * @param working_dir string containing path to desired working directory */
 		std::string BuildBashScript(const std::string& working_dir);
