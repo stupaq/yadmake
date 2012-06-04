@@ -3,9 +3,8 @@
 
 #include "../options.h"
 #include "../dispatcher.h"
-#include "../commands.h"
-#include "../remote_worker.h"
-#include "../exec.h"
+#include "../dbparser.h"
+#include "../err.h"
 
 
 
@@ -19,16 +18,15 @@ int main(int argc, char** argv) {
   else {
     system(r.exec.c_str());
     if (r.dist_make) {
-      string s = "make -pq > base";
-      system(s.c_str());
+      system("make -pq > base");
       filebuf fb;
       fb.open ("base",ios::in);
       istream is(&fb);
       DependencyGraph dep_graph(is);  
-
-      //TODO wywołać Dispatcher 
-
-    
+      
+      Dispatcher(dep_graph, r.keep_going);
+      fb.close();
+      system("rm base");
     }
   }
 }

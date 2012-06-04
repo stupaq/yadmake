@@ -23,10 +23,10 @@ const char *opt = "bmBdeikLno:pqrRsStvW:";
 std::string temp;
 options result;
 result.err = 0;
+result.keep_going = 0;
 forward.push_back("make");
   
 while ((c = getopt (argc, argv, opt)) != -1) {
-printf ("%c\n", c);
   switch (c) {
     case 'p':
       is_p = 1;
@@ -37,13 +37,14 @@ printf ("%c\n", c);
     case 'v':
       exec = 1;
       break;
+    case 'k':
+      result.keep_going = 0;
     case 'b':
     case 'm':
     case 'B':
     case 'd':
     case 'e':
     case 'i':
-    case 'k':
     case 'L':
     case 'r':
     case 'R':
@@ -60,7 +61,7 @@ printf ("%c\n", c);
       forward.push_back(temp);
       break;
     case '?':
-      if (optopt == 'o' | optopt == 'W')
+      if (optopt == 'o' || optopt == 'W')
         fprintf (stderr, "Option -%c requires an argument.\n", optopt);
       else if (isprint (optopt))
         fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -96,7 +97,7 @@ if (exec) {
 else {
   if (is_clean != 0) {
     temp = "make clean ";
-    for (i = 0; i < forward.size(); i++) 
+    for (i = 0; i < (int) forward.size(); i++) 
       temp = temp + forward[i] + " ";
   }
   if (is_p) {
