@@ -41,6 +41,10 @@ Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), in
 Target::~Target() {
 }
 
+bool Target::EmptyRules() {
+	return commands_.empty();
+}
+
 std::string Target::BuildBashScript(const std::string& working_dir) {
 	stringstream ss;
 
@@ -109,7 +113,7 @@ void DependencyGraph::Init(istream& is) {
 	static const string stop_acquisition = "# GNU Make";
 	static const string start_acquisition = "# Files";
 	static const string not_a_target = "# Not a target:";
-	static const string not_proper_beginning = "#%.\t\n";
+	static const string not_proper_beginning = "-@(#%.\t\n";
 
 	/* a map for tracking nodes */
 	typedef pair<string, Target*> nodes_type;
