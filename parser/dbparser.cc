@@ -261,15 +261,13 @@ void DependencyGraph::DumpMakefile(ostream& os) {
 		Target* currt = lvqueue.front();
 		lvqueue.pop();
 
-		if (!currt->EmptyRules() || currt->kName_ == "all") {
-			os << currt->kName_ << ":";
-			BOOST_FOREACH(Target*& t, currt->dependencies_)
-				os << " " << t->kName_;
-			os << '\n';
-			BOOST_FOREACH(string& s, currt->commands_)
-				os << '\t' << s << '\n';
-			os << endl;
-		}
+		os << currt->kName_ << ":";
+		BOOST_FOREACH(Target*& t, currt->dependencies_)
+			os << " " << t->kName_;
+		os << '\n';
+		BOOST_FOREACH(string& s, currt->commands_)
+			os << '\t' << s << '\n';
+		os << endl;
 
 		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
 			if (--t->inord_ == 0)
@@ -323,8 +321,11 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 	string commands = exec_result.first;
 	string commands_err = exec_result.second;
 
-	if (commands_err !=  "")
+	if (commands_err !=  "") {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
 		throw MakeError(commands_err);
+	}
 
 	size_t pos = 0;
 	string delima = "make: `" + delimiter + "' is up to date.";
