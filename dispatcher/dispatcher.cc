@@ -67,66 +67,59 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 		while (!ready_targets.empty() && !free_workers.empty()){
 			Target *t = ready_targets.back();
 			ready_targets.pop_back();
-      if (t->EmptyRules())
-      {
-        t->MarkRealized(ready_targets);
-      }
-      else
-      {
-        Worker *c = free_workers.back();
-        free_workers.pop_back();
+			Worker *c = free_workers.back();
+			free_workers.pop_back();
 
-        c->BuildTarget(t);
-        ++child_count;
-      }
-    }
+			c->BuildTarget(t);
+			++child_count;
+		}
 
-    report = m->Get();
-    --child_count;
-    switch (report.status)
-    {
-      case TargetDone:
-        report.target->MarkRealized(ready_targets);
-        free_workers.push_back(report.worker);
-        break;
-      case SshError:
-        /* delete worker, repeat target */
-        fprintf(stderr, "SshError during build\n");
-        ready_targets.push_back(report.target);
-        broken_workers.push_back(report.worker);
-        break;
-      case NewJob:
-        /* wtf? TODO */
-        break;
-      case TargetFailed:
-        free_workers.push_back(report.worker);
-        if (!keep_going)
-          syserr("building target error");
-        break;
-      case WorkerDied:
-        fprintf(stderr, "Worker Died much too early\n");
-        ready_targets.push_back(report.target);
-        broken_workers.push_back(report.worker);
-        break;
-      default:
-        fprintf(stderr, "impossible is nothing\n");
-    }
-    if (free_workers.size() == 0)
-      syserr("all workers failed");
-  }
+		report = m->Get();
+		--child_count;
+		switch (report.status)
+		{
+			case TargetDone:
+				report.target->MarkRealized(ready_targets);
+				free_workers.push_back(report.worker);
+				break;
+			case SshError:
+				/* delete worker, repeat target */
+				fprintf(stderr, "SshError during build\n");
+				ready_targets.push_back(report.target);
+				broken_workers.push_back(report.worker);
+				break;
+			case NewJob:
+				/* wtf? TODO */
+				break;
+			case TargetFailed:
+				free_workers.push_back(report.worker);
+				if (!keep_going)
+					syserr("building target error");
+				break;
+			case WorkerDied:
+				fprintf(stderr, "Worker Died much too early\n");
+				ready_targets.push_back(report.target);
+				broken_workers.push_back(report.worker);
+				break;
+			default:
+				fprintf(stderr, "impossible is nothing\n");
+		}
+		if (free_workers.size() == 0)
+			syserr("all workers failed");
+	}
 
-  BOOST_FOREACH(Worker *w, free_workers)
-    delete w;
-  BOOST_FOREACH(Worker *w, broken_workers)
-    delete w;
+	BOOST_FOREACH(Worker *w, free_workers)
+		delete w;
+	BOOST_FOREACH(Worker *w, broken_workers)
+		delete w;
 
-  /* czy musze odbierac status zniszczenia? TODO */
-  int n = free_workers.size() + broken_workers.size();
-  for(int i = 0; i < n; ++i)
-  {
-    report = m->Get();
-    if (report.status != WorkerDied)
-      syserr("status after worker delete is not WorkerDied");
-  }
-  delete m;
+	/* czy musze odbierac status zniszczenia? TODO */
+	int n = free_workers.size() + broken_workers.size();
+	for(int i = 0; i < n; ++i)
+	{
+		report = m->Get();
+		if (report.status != WorkerDied)
+			syserr("status after worker delete is not WorkerDied");
+	}
+	delete m;
 }
