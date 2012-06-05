@@ -34,7 +34,8 @@ int main(int argc, char** argv) {
       /* get commands */
       const string delimiter = "3344543508980989031231";
       graph.CountCommands(r.forward, delimiter);
-      Dispatcher(dep_graph, r.keep_going);
+      graph.DumpMakefile(cout);
+      Dispatcher(graph, r.keep_going);
 
     }
   }
