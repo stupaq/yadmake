@@ -7,7 +7,7 @@ SshException::SshException(ssh_session csession){
 	description=std::string(ssh_get_error(csession));
 }
 
-SshException::	SshException(const SshException &e){
+SshException::SshException(const SshException &e){
 	code=e.code;
 	description=e.description;
 }

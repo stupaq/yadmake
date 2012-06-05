@@ -84,6 +84,9 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 			session_->userauthAutopubkey();
 		} catch (SshException e) {
 			msg_parent_->Send(SshError);
+			cerr << "SshException in worker " << hostname_ << " code: " << e.getCode() << "\n" << e.getError();
+			do_kill_worker(-1); // HACK
+			// deadcode
 			throw e;
 		}
 
