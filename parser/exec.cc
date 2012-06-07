@@ -2,11 +2,14 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdio.h>
+
 #include <string>
 #include <vector>
+#include <utility>
+
 #include <boost/iostreams/device/file_descriptor.hpp>
 #include <boost/iostreams/stream.hpp>
-#include <utility>
+
 #include "err.h"
 #include "exec.h"
 
@@ -47,7 +50,7 @@ std::pair<string, string> exec(const string& programme, const vector<string>& ar
 	int conn_err[2];
 	if (pipe(conn) == -1)			syserr("pipe error");
 	if (pipe(conn_err) == -1)		syserr("pipe error");
-	
+
 	switch (child = fork()) {
 		case -1:
 			syserr("fork error");
@@ -87,7 +90,7 @@ std::pair<string, string> exec(const string& programme, const vector<string>& ar
 				result_err += line;
 				result_err += "\n";
 			}
-      
+
 			/* wait for child process */
 			if (waitpid(child, &status, 0) == -1)
 				syserr("wait error in exec.cc");

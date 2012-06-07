@@ -10,10 +10,6 @@ int main(int argc, char* argv[]) {
 	const string make_command = "make";
 	vector<string> args;
 	args.push_back("-pq");
-	if (argc > 1) {
-		args.push_back("-C");
-		args.push_back(argv[1]);
-	}
 	pair<string, string> out = exec(make_command, args);
 
 	/* create graph */
@@ -22,7 +18,10 @@ int main(int argc, char* argv[]) {
 	/* get commands */
 	const string delimiter = "3344543508980989031231";
 	vector<string> basics;
-	graph.CountCommands(basics, delimiter);
+	vector<string> targets;
+	if (argc > 1)
+		targets.push_back(argv[1]);
+	graph.CountCommands(basics, delimiter, targets);
 
 	/* dump makefile */
 	graph.DumpMakefile(cout);
