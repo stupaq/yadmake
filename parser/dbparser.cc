@@ -18,6 +18,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#include "err.h"
 #include "exec.h"
 #include "dbparser.h"
 
@@ -35,7 +36,7 @@ void Target::AddDependency(Target* target) {
 	++inord_;
 }
 
-Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), inord_(0) {
+Target::Target(const string& name) : kId_(Target::idcounter++), kName_(name), inord_(0), is_target_(0) {
 }
 
 Target::~Target() {
@@ -60,6 +61,15 @@ void Target::MarkRealized(std::vector<Target*> &ready_targets) {
 		--(i->inord_);
 		if (i->inord_==0)
 			ready_targets.push_back(i);
+	}
+}
+
+void Target::MarkSubtreeIfTarget(bool if_target) {
+	if (is_target_ == if_target)
+		return;
+	is_target_ = if_target;
+	BOOST_FOREACH(Target * i, dependencies_) {
+		i->MarkSubtreeIfTarget(if_target);
 	}
 }
 
@@ -93,6 +103,19 @@ void DependencyGraph::ReinitInord() const {
 		if (t) {
 			t->inord_ = t->dependencies_.size();
 		}
+	}
+}
+
+void DependencyGraph::TrimToTargets(vector<string> targets) {
+	BOOST_FOREACH(Target * i, all_targets_) {
+		BOOST_FOREACH(string s, targets) {
+			if (s == i->kName_)
+				i->MarkSubtreeIfTarget(true);
+		}
+	}
+	BOOST_FOREACH(Target * i, all_targets_) {
+		if (!i->is_target_)
+			i->commands_.clear();
 	}
 }
 
@@ -295,12 +318,22 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		options.push_back(it->kName_);
 	}
 
-	std::pair<string, string> exec_result = exec("make", options);
+	std::pair<string, string> exec_result;
+	try {
+		exec_result = exec("make", options);
+	} catch (SystemError& e) {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
+		throw e;
+	}
 	string commands = exec_result.first;
 	string commands_err = exec_result.second;
 
-	if (commands_err !=  "")
+	if (commands_err !=  "") {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
 		throw MakeError(commands_err);
+	}
 
 	size_t pos = 0;
 	string delima = "make: `" + delimiter + "' is up to date.";
@@ -316,8 +349,11 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		if (delima_pos == string::npos)
 			delim_pos = delimb_pos;
 
-		if (delim_pos == string::npos)
-			throw std::length_error("Lack of commands in a level\n");
+		if (delim_pos == string::npos) {
+			remove("Makefile");
+			rename("DMakefile", "Makefile");
+			throw MakeError("Lack of commands in a level\n");
+		}
 
 		string command = commands.substr(pos, delim_pos - pos);
 
@@ -351,7 +387,7 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 
 
 void DependencyGraph::CountCommands(const vector<string>& basics,
-		const string& delimiter) {
+		const string& delimiter, vector<string> targets) {
 
 	system("cp Makefile DMakefile");
 
@@ -365,7 +401,11 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 	n_basics.push_back("-n");
 
 	vector<vector<Target*> > levels = GetLevels();
-	if (levels.empty()) return;
+	if (levels.empty()) {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
+		return;
+	}
 
 	CountOneLevel(n_basics, delimiter, *levels.begin(), vector<Target*>());
 	for (vector<vector<Target*> >::iterator it = levels.begin() + 1;
@@ -373,6 +413,9 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();
+	if (targets.empty())
+		targets.push_back("all");
+	TrimToTargets(targets);
 
 	remove("Makefile");
 	rename("DMakefile", "Makefile");

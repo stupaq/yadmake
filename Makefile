@@ -20,8 +20,8 @@ all: $(DEPENDS) $(ALL)
 
 # create submakefiles
 $(DEPENDS) : %.d : %.cc
-	$(CXX) $(CXXFLAGS) -MM $< > $@
-	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< >> $@
+	$(CXX) $(CXXFLAGS) -MT $(<:.cc=.o) -MM $< > $@
+	@echo -e "\t"$(CXX) $(CXXFLAGS) -c $(CFLAGS) $< -o $(<:.cc=.o) >> $@
 
 # link objects
 $(ALL) : % : %.o $(OBJECTS)
