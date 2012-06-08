@@ -45,11 +45,14 @@ void do_kill_worker(int sig) {
 		do_kill_build(0);
 
 		/* close connection */
-		currentWorker->session_->disconnect();
-		delete currentWorker->session_;
+		try {
+			currentWorker->session_->disconnect();
+			delete currentWorker->session_;
 
-		currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
+			currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
+		} catch (...) {}
 
+		errno = 0;
 		exit(0);
 	}
 }
