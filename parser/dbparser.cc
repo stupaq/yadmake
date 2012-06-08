@@ -18,6 +18,7 @@
 #include <boost/iostreams/stream.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#include "err.h"
 #include "exec.h"
 #include "dbparser.h"
 
@@ -317,7 +318,14 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		options.push_back(it->kName_);
 	}
 
-	std::pair<string, string> exec_result = exec("make", options);
+	std::pair<string, string> exec_result;
+	try {
+		exec_result = exec("make", options);
+	} catch (SystemError& e) {
+		remove("Makefile");
+		rename("DMakefile", "Makefile");
+		throw e;
+	}
 	string commands = exec_result.first;
 	string commands_err = exec_result.second;
 
@@ -341,8 +349,11 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 		if (delima_pos == string::npos)
 			delim_pos = delimb_pos;
 
-		if (delim_pos == string::npos)
-			throw std::length_error("Lack of commands in a level\n");
+		if (delim_pos == string::npos) {
+			remove("Makefile");
+			rename("DMakefile", "Makefile");
+			throw MakeError("Lack of commands in a level\n");
+		}
 
 		string command = commands.substr(pos, delim_pos - pos);
 
@@ -376,7 +387,7 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 
 
 void DependencyGraph::CountCommands(const vector<string>& basics,
-		const string& delimiter) {
+		const string& delimiter, vector<string> targets) {
 
 	system("cp Makefile DMakefile");
 
@@ -402,8 +413,8 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();
-	vector<string> targets;
-	targets.push_back("all");
+	if (targets.empty())
+		targets.push_back("all");
 	TrimToTargets(targets);
 
 	remove("Makefile");

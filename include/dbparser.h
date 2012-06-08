@@ -21,8 +21,8 @@ class CircularDependency : public std::runtime_error {
 };
 
 /**
- * An exception thrown by count_commands if make -n
- * exits with error.
+ * An exception thrown by CountCommands if make -n
+ * exits with error or in case of parsing failure.
  */
 class MakeError : public std::runtime_error {
 	public:
@@ -43,19 +43,23 @@ class DependencyGraph {
 		void ReinitInord() const;
 
 		/**
-		 * Leaves commands in graph only for targets
-		 * and their subtrees.
-		 */
-		void TrimToTargets(std::vector<std::string> targets);
-		
-		/**
 		 * Adds commands to targets.
-		 * @basic can contain for example ('aim', '-o', 'ready_aim').
-		 * @delimiter is a name of added target
-		 *
+		 * @basic can contain make options,
+		 * for example ('aim', '-o', 'ready_aim').
+		 * @delimiter is a name of target to add.
+		 * @targets are targets expected to be built; if left empty
+		 * target 'all' is expected (rules for other targets
+		 * will be empty).
+		 * Expects file 'Makefile' in working directory.
+		 * Throws MakeError if make -n exits with error
+		 * or in case of parsing failure.
+		 * Throws SystemError in case of system error during
+		 * executing make -n.
 		 */
 		void CountCommands( const std::vector<std::string>& basics,
-				const std::string& delimiter);
+				const std::string& delimiter,
+				std::vector<std::string> targets =
+				std::vector<std::string>());
 
 		/**
 		 * Builds DependencyGraph from MakefileDB.
@@ -90,10 +94,17 @@ class DependencyGraph {
 		void RemoveNotMarkedTargets();
 		void DeleteBlah();
 	private:
-		/* Shares targets into levels.
+		/**
+		 * Shares targets into levels.
 		 * Leafs have level 0 and so on. */
 		std::vector<std::vector<Target*> > GetLevels();
-		/* Adds commands to targets at one level (to_make).
+		/**
+		 * Leaves commands in graph only for targets
+		 * and their subtrees.
+		 */
+		void TrimToTargets(std::vector<std::string> targets);
+		/**
+		 * Adds commands to targets at one level (to_make).
 		 * Targets at previous level should be in not_to_make.
 		 * @Delimiter is the additional target printing its name.
 		 * @Basics contains make, -n and options from command line.
@@ -109,53 +120,53 @@ class Target {
 	friend class DependencyGraph;
 
 	public:
-		/** Integer value unique to each Target. */
-		const int kId_;
-		/** Name of a Target as it occurs in MakefileDB. */
-		const std::string kName_;
+	/** Integer value unique to each Target. */
+	const int kId_;
+	/** Name of a Target as it occurs in MakefileDB. */
+	const std::string kName_;
 
-		/**
-		 * Registers another target as a dependency of this one.
-		 * @param target pointer to newly added dependency Target */
-		void AddDependency(Target* target);
+	/**
+	 * Registers another target as a dependency of this one.
+	 * @param target pointer to newly added dependency Target */
+	void AddDependency(Target* target);
 
-		/**
-		 * Determines whether there's something to do within target.
-		 * @return true if target should be rebuild */
-		bool EmptyRules();
+	/**
+	 * Determines whether there's something to do within target.
+	 * @return true if target should be rebuild */
+	bool EmptyRules();
 
-		/**
-		 * Constructs string containing bash script that executes commands for this target
-		 * @param working_dir string containing path to desired working directory */
-		std::string BuildBashScript(const std::string& working_dir);
+	/**
+	 * Constructs string containing bash script that executes commands for this target
+	 * @param working_dir string containing path to desired working directory */
+	std::string BuildBashScript(const std::string& working_dir);
 
-		/**
-		 * Sets is_target_ to if_target recursively.
-		 * @If is_target_ is already correct, returns.
-		 */
-		void MarkSubtreeIfTarget(bool if_target);
+	/**
+	 * Target constructor.
+	 * @param name reference to constant string holding new Target name
+	 */
+	Target(const std::string& name);
+	virtual ~Target();
 
-		/**
-		 * Target constructor.
-		 * @param name reference to constant string holding new Target name
-		 */
-		Target(const std::string& name);
-		virtual ~Target();
+	/**
+	 * Mark me as realized - 
+	 * decrease dependent targets inords
+	 * check whether dependent targets are ready to realize,
+	 * add them to ready_targets
+	 */
+	void MarkRealized(std::vector<Target*> &ready_targets);
 
-    /**
-     * Mark me as realized - 
-     * decrease dependent targets inords
-     * check whether dependent targets are ready to realize,
-     * add them to ready_targets
-     */
-	  void MarkRealized(std::vector<Target*> &ready_targets);
 	protected:
-		std::list<Target*> dependent_targets_;
-		std::list<Target*> dependencies_;
-		std::vector<std::string> commands_;
-		int inord_;
-		bool is_target_;
-		static int idcounter;
+	std::list<Target*> dependent_targets_;
+	std::list<Target*> dependencies_;
+	std::vector<std::string> commands_;
+	int inord_;
+	bool is_target_;
+	static int idcounter;
+	/**
+	 * Sets is_target_ to if_target recursively.
+	 * @If is_target_ is already correct, returns.
+	 */
+	void MarkSubtreeIfTarget(bool if_target);
 };
 
 #endif  // _DBPARSER_H_

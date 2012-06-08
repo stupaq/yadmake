@@ -1,11 +1,14 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
+#include <stddef.h>
 #include <signal.h>
+#include <cerrno>
+#include <cstring>
+#include <cstdio>
 
 #include <string>
 #include <stdexcept>
-#include <iostream>
 #include <utility>
 #include <vector>
 #include <fstream>
@@ -28,7 +31,7 @@ static SshWorker* currentWorker = NULL;
 void do_kill_build(int sig) {
 	if (sig) {
 		if (currentWorker == NULL)
-			throw runtime_error("empty worker");
+			throw logic_error("assert(false)");
 
 		/* EXEC: WORKER */
 		throw runtime_error("NOT IMPLEMENTED");
@@ -38,18 +41,20 @@ void do_kill_build(int sig) {
 void do_kill_worker(int sig) {
 	if (sig) {
 		if (currentWorker == NULL)
-			throw runtime_error("empty worker");
+			throw logic_error("assert(false)");
 
 		/* EXEC: WORKER */
-
 		do_kill_build(0);
 
 		/* close connection */
-		currentWorker->session_->disconnect();
-		delete currentWorker->session_;
+		try {
+			currentWorker->session_->disconnect();
+			delete currentWorker->session_;
 
-		currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
+			currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
+		} catch (...) {}
 
+		errno = 0;
 		exit(0);
 	}
 }
@@ -62,17 +67,35 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 		msg_jobs_ = new Messaging();
 
 		pid_ = fork();
-		if (pid_ < 0)
-			throw runtime_error("fork() failure");
-		else if (pid_ > 0)
+		if (pid_ < 0) {
+			delete msg_jobs_;
+			throw SystemError("fork() failure");
+		} else if (pid_ > 0)
 			return;
 
 		/* EXEC: WORKER */
 		currentWorker = this;
 
 		/* setup */
-		signal(SIGUSR1, &do_kill_build);
-		signal(SIGTERM, &do_kill_worker);
+		{
+			struct sigaction setup_action;
+			sigset_t block_mask;
+
+			sigemptyset(&block_mask);
+			sigaddset(&block_mask, SIGUSR1);
+			sigaddset(&block_mask, SIGTERM);
+
+			setup_action.sa_handler = do_kill_build;
+			setup_action.sa_mask = block_mask;
+			setup_action.sa_flags = 0;
+			sigaction(SIGUSR1, &setup_action, NULL);
+
+
+			setup_action.sa_handler = do_kill_worker;
+			setup_action.sa_mask = block_mask;
+			setup_action.sa_flags = 0;
+			sigaction(SIGTERM, &setup_action, NULL);
+		}
 
 		try {
 			/* connect and authenticate */
@@ -84,10 +107,7 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 			session_->userauthAutopubkey();
 		} catch (SshException e) {
 			msg_parent_->Send(SshError);
-			cerr << "SshException in worker " << hostname_ << " code: " << e.getCode() << "\n" << e.getError();
-			do_kill_worker(-1); // HACK
-			// deadcode
-			throw e;
+			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
 		}
 
 		/* run main dispatcher */
@@ -98,12 +118,12 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 	}
 
 SshWorker::~SshWorker() {
-	/* EXEC: DISPATCHER */
 	if (pid_ > 0) {
+		/* EXEC: DISPATCHER */
 
 		/* kill worker */
 		if (kill(pid_, SIGTERM) < 0)
-			throw runtime_error("can't kill worker process");
+			throw SystemError("can't kill worker process");
 
 		/* wait unitl child process died */
 		waitpid(pid_, NULL, 0);
@@ -115,6 +135,7 @@ SshWorker::~SshWorker() {
 }
 
 int SshWorker::exec(const string& comm) {
+	/* EXEC: WORKER */
 	char buffer[8092];
 	int buffersz = sizeof(buffer) - 1;
 	int r, ret_val = 0;
@@ -123,9 +144,7 @@ int SshWorker::exec(const string& comm) {
 	Channel commch(*session_);
 	commch.openSession();
 
-#ifdef WORKERS_DEBUG
-	cerr << "EXECUTING:\n\t" << comm << endl;
-#endif // WORKERS_DEBUG
+	printf("%s\n", comm.c_str());
 	commch.requestExec(comm.c_str());
 
 	commch.sendEof();
@@ -135,7 +154,7 @@ int SshWorker::exec(const string& comm) {
 		r = commch.readNonblocking(buffer, buffersz);
 		buffer[r] = '\0';
 		if (r > 0) {
-			cout << buffer << endl;
+			printf("%s\n", buffer);
 		} else {
 			--empty_reads;
 			usleep(EMPTY_READS_US);
@@ -144,9 +163,6 @@ int SshWorker::exec(const string& comm) {
 
 	/* get return value */
 	ret_val = commch.getExitStatus();
-#ifdef WORKERS_DEBUG
-	cerr << "RETURN VALUE: " << ret_val << endl << endl;
-#endif // WORKERS_DEBUG
 
 	/* close chanell */
 	commch.close();
@@ -169,7 +185,8 @@ void SshWorker::do_run() {
 			ret_val = exec(commands);
 		} catch(SshException e) {
 			msg_parent_->Send(SshError, this, r.target);
-			throw e;
+			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
+			continue;
 		}
 
 		/* notify that we've done here */
@@ -181,28 +198,34 @@ void SshWorker::do_run() {
 }
 
 void SshWorker::BuildTarget(Target* target) {
-	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
+		/* EXEC: DISPATCHER */
 
 		msg_jobs_->Send(NewJob, this, target);
 	}
 }
 
 void SshWorker::KillBuild() {
-	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
+		/* EXEC: DISPATCHER */
 
 		if (kill(pid_, SIGUSR1) < 0)
-			throw runtime_error("failed to kill worker");
+			throw SystemError("failed to kill worker");
 
 		pid_ = -1;
 	}
 }
 
 Messaging::Messaging() {
-	msgqid_ = msgget(IPC_PRIVATE, 0777);
-	if (msgqid_ < 0)
-		throw runtime_error("msgget() failure");
+	/* any worker should never create message queue,
+	 * this must be done by dispatching process */
+	if (currentWorker == NULL) {
+		msgqid_ = msgget(IPC_PRIVATE, 0777);
+		if (msgqid_ < 0)
+			throw SystemError("msgget() failure");
+	} else {
+		throw logic_error("Messaging constructor invoked in worker");
+	}
 }
 
 Messaging::~Messaging() {
@@ -211,7 +234,7 @@ Messaging::~Messaging() {
 	if (currentWorker == NULL) {
 		msgctl(msgqid_, IPC_RMID, NULL);
 	} else {
-		throw runtime_error("Messaging destructor invoked in worker");
+		throw logic_error("Messaging destructor invoked in worker");
 	}
 }
 
@@ -221,14 +244,17 @@ void Messaging::Send(enum Status status, Worker* worker, Target* target) {
 	Report r = {1, status, worker, target};
 
 	if (msgsnd(msgqid_, &r, msg_size(r), 0) < 0)
-		throw runtime_error("msgsnd() failure");
+		throw SystemError("msgsnd() failure");
 }
 
 Report Messaging::Get() {
 	Report r;
 
-	if (msg_size(r) != msgrcv(msgqid_, &r, msg_size(r), 0, 0))
-		throw runtime_error("msgrcv() failure");
+	while (msg_size(r) != msgrcv(msgqid_, &r, msg_size(r), 0, 0)) {
+		if (errno == EINTR)
+			continue;
+		throw SystemError("msgrcv() failure");
+	}
 
 	return r;
 }

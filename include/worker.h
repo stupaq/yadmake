@@ -1,13 +1,12 @@
 #ifndef _WORKER_H
 #define _WORKER_H
 
-#define WORKERS_DEBUG
-
 #include <sys/types.h>
 
 #include "libsshpp.hpp"
 
 #include "dbparser.h"
+#include "err.h"
 
 /** Abstract class representing worker. */
 class Worker {
@@ -70,7 +69,7 @@ class SshWorker : public Worker {
 		 * pid of spawned process in constructor callers */
 		int pid_;
 		const std::string hostname_;
-		const std::string& working_dir_;
+		const std::string working_dir_;
 		Messaging* msg_jobs_;
 		Messaging* msg_parent_;
 		/** this variable is _not_ properly set in dispatcher process */
@@ -86,7 +85,7 @@ class SshWorker : public Worker {
 		 * Creates new worker, spawns process for this worker and connects
 		 * to given host as defined in config_path ssh config file. This function
 		 * returns immediately. Calling process should wait for worker to estabilish
-		 * SSH connection by calling GetJob on provided msg_parent Messaging instance.
+		 * SSH connection by calling Get on provided msg_parent Messaging instance.
 		 * @param hostname host to be associated with this worker
 		 * @param working_dir current working directory for executing commands
 		 * @param msg_parent pointer to Messaging instance used by calling process
@@ -94,10 +93,16 @@ class SshWorker : public Worker {
 		 * @param config_path  path to SSH configuration file, dafults to ~/.ssh/config */
 		SshWorker(const std::string& hostname, const std::string& working_dir,
 				Messaging* msg_parent, const std::string& config_path = "");
+
+		/**
+		 * Kills given worker irreversibly.
+		 * */
+		~SshWorker();
+
 		/**
 		 * NOT IMPLEMENTED */
-		~SshWorker();
 		void KillBuild();
+
 		/**
 		 * Schedules build of given target on this worker, return immediately
 		 * @param target pointer to target to be submitted */
