@@ -5,10 +5,13 @@
 #include "worker.h"
 #include "dbparser.h"
 
+#define UNUSED(x) ((void) (x))
+
 using namespace std;
 
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE remote/execute_students
+#define BOOST_TEST_IGNORE_NON_ZERO_CHILD_CODE
 #include <boost/test/unit_test.hpp>
 
 /* Necessary for auto Makefile to build this file
@@ -36,15 +39,12 @@ BOOST_AUTO_TEST_CASE(ready_benchmark) {
 	}
 
 	BOOST_FOREACH(Worker* w, workers) {
+		UNUSED(w);
 		BOOST_CHECK(WorkerReady == m->Get().status);
 	}
 
 	BOOST_FOREACH(Worker* w, workers) {
 		delete w;
-	}
-
-	BOOST_FOREACH(Worker* w, workers) {
-		BOOST_CHECK(WorkerDied == m->Get().status);
 	}
 
 	delete m;
