@@ -3,6 +3,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <cerrno>
+#include <cstring>
 #include <cstdio>
 
 #include <string>
@@ -89,8 +90,6 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 		} catch (SshException e) {
 			msg_parent_->Send(SshError);
 			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
-			/* exits normally after notifying about error */
-			do_kill_worker(-1);
 		}
 
 		/* run main dispatcher */
@@ -118,6 +117,7 @@ SshWorker::~SshWorker() {
 }
 
 int SshWorker::exec(const string& comm) {
+	/* EXEC: WORKER */
 	char buffer[8092];
 	int buffersz = sizeof(buffer) - 1;
 	int r, ret_val = 0;
@@ -168,8 +168,7 @@ void SshWorker::do_run() {
 		} catch(SshException e) {
 			msg_parent_->Send(SshError, this, r.target);
 			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
-			/* exits normally after notifying about error */
-			do_kill_worker(-1);
+			continue;
 		}
 
 		/* notify that we've done here */
@@ -181,16 +180,16 @@ void SshWorker::do_run() {
 }
 
 void SshWorker::BuildTarget(Target* target) {
-	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
+		/* EXEC: DISPATCHER */
 
 		msg_jobs_->Send(NewJob, this, target);
 	}
 }
 
 void SshWorker::KillBuild() {
-	/* EXEC: DISPATCHER */
 	if(pid_ > 0) {
+		/* EXEC: DISPATCHER */
 
 		if (kill(pid_, SIGUSR1) < 0)
 			throw SystemError("failed to kill worker");
@@ -200,9 +199,15 @@ void SshWorker::KillBuild() {
 }
 
 Messaging::Messaging() {
-	msgqid_ = msgget(IPC_PRIVATE, 0777);
-	if (msgqid_ < 0)
-		throw SystemError("msgget() failure");
+	/* any worker should never create message queue,
+	 * this must be done by dispatching process */
+	if (currentWorker == NULL) {
+		msgqid_ = msgget(IPC_PRIVATE, 0777);
+		if (msgqid_ < 0)
+			throw SystemError("msgget() failure");
+	} else {
+		throw logic_error("Messaging constructor invoked in worker");
+	}
 }
 
 Messaging::~Messaging() {
@@ -211,7 +216,7 @@ Messaging::~Messaging() {
 	if (currentWorker == NULL) {
 		msgctl(msgqid_, IPC_RMID, NULL);
 	} else {
-		throw SystemError("Messaging destructor invoked in worker");
+		throw logic_error("Messaging destructor invoked in worker");
 	}
 }
 
