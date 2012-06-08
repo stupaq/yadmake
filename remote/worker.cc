@@ -1,6 +1,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
+#include <stddef.h>
 #include <signal.h>
 #include <cerrno>
 #include <cstring>
@@ -76,8 +77,25 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 		currentWorker = this;
 
 		/* setup */
-		signal(SIGUSR1, &do_kill_build);
-		signal(SIGTERM, &do_kill_worker);
+		{
+			struct sigaction setup_action;
+			sigset_t block_mask;
+
+			sigemptyset(&block_mask);
+			sigaddset(&block_mask, SIGUSR1);
+			sigaddset(&block_mask, SIGTERM);
+
+			setup_action.sa_handler = do_kill_build;
+			setup_action.sa_mask = block_mask;
+			setup_action.sa_flags = 0;
+			sigaction(SIGUSR1, &setup_action, NULL);
+
+
+			setup_action.sa_handler = do_kill_worker;
+			setup_action.sa_mask = block_mask;
+			setup_action.sa_flags = 0;
+			sigaction(SIGTERM, &setup_action, NULL);
+		}
 
 		try {
 			/* connect and authenticate */
