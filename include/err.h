@@ -15,7 +15,8 @@ class SystemError : public std::exception {
 		std::string what_;
 	public:
 		SystemError(const std::string& what = "");
-		virtual const char* what();
+		~SystemError() throw ();
+		virtual const char* what() throw ();
 };
 
 /*

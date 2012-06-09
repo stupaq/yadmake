@@ -134,11 +134,28 @@ SshWorker::~SshWorker() {
 	}
 }
 
+void SshWorker::pipeOutput(Channel& commch, bool is_stderr) {
+	char buffer[8092];
+	int r;
+	int buffersz = sizeof(buffer) - 1;
+	FILE* stream = (is_stderr) ? stderr : stdout;
+
+	int empty_reads = EMPTY_READS_NB;
+	do {
+		r = commch.readNonblocking(buffer, buffersz, is_stderr);
+		buffer[r] = '\0';
+		if (r > 0) {
+			fprintf(stream, "%s\n", buffer);
+		} else {
+			--empty_reads;
+			usleep(EMPTY_READS_US);
+		}
+	} while(commch.isOpen() && ! commch.isEof() && empty_reads);
+}
+
 int SshWorker::exec(const string& comm) {
 	/* EXEC: WORKER */
-	char buffer[8092];
-	int buffersz = sizeof(buffer) - 1;
-	int r, ret_val = 0;
+	int ret_val = 0;
 
 	/* unfortunately me must request new chanell each time */
 	Channel commch(*session_);
@@ -148,18 +165,11 @@ int SshWorker::exec(const string& comm) {
 	commch.requestExec(comm.c_str());
 
 	commch.sendEof();
-	/* read output */
-	int empty_reads = EMPTY_READS_NB;
-	do {
-		r = commch.readNonblocking(buffer, buffersz);
-		buffer[r] = '\0';
-		if (r > 0) {
-			printf("%s\n", buffer);
-		} else {
-			--empty_reads;
-			usleep(EMPTY_READS_US);
-		}
-	} while(commch.isOpen() && ! commch.isEof() && empty_reads);
+	/* read command's stdout */
+	pipeOutput(commch, false);
+
+	/* read command's stderr */
+	pipeOutput(commch, true);
 
 	/* get return value */
 	ret_val = commch.getExitStatus();
