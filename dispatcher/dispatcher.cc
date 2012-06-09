@@ -67,11 +67,18 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 		while (!ready_targets.empty() && !free_workers.empty()){
 			Target *t = ready_targets.back();
 			ready_targets.pop_back();
-			Worker *c = free_workers.back();
-			free_workers.pop_back();
+			if (t->EmptyRules())
+			{
+				t->MarkRealized(ready_targets);
+			}
+			else
+			{
+				Worker *c = free_workers.back();
+				free_workers.pop_back();
 
-			c->BuildTarget(t);
-			++child_count;
+				c->BuildTarget(t);
+				++child_count;
+			}
 		}
 
 		report = m->Get();
