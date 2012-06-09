@@ -16,7 +16,10 @@ SystemError::SystemError(const string& what) : errno_(errno) {
 		what_ = what;
 }
 
-const char* SystemError::what() {
+SystemError::~SystemError() throw () {
+}
+
+const char* SystemError::what() throw () {
 	return what_.c_str();
 }
 

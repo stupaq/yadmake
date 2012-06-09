@@ -74,12 +74,18 @@ class SshWorker : public Worker {
 		Messaging* msg_parent_;
 		/** this variable is _not_ properly set in dispatcher process */
 		ssh::Session* session_;
+		/** Worker's main loop */
 		void do_run();
 		/**
 		 * Executes given command on remote host
 		 * @param comm command to execute
 		 * @return return code of executed command */
 		int exec(const std::string& comm);
+		/**
+		 * Reads output of command executed on this channel
+		 * @param comch channel to read
+		 * @param is_stderr determines whether read stdout or stderr */
+		void pipeOutput(ssh::Channel& commch, bool is_stderr = false);
 	public:
 		/**
 		 * Creates new worker, spawns process for this worker and connects
