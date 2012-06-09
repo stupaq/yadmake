@@ -112,8 +112,8 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 				default:
 					fprintf(stderr, "impossible is nothing\n");
 			}
-			if (free_workers.size() == 0)
-				syserr("all workers failed");
 		}
+    if (free_workers.size() == 0 && child_count == 0 && ready_targets.size() > 0)
+      syserr("all workers failed");
 	}
 }
