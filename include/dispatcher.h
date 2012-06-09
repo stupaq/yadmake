@@ -22,6 +22,8 @@
  * [hopefully targets are built]
  */
 void Dispatcher(const DependencyGraph & dependency_graph,
+    std::vector<Worker *> created_not_ready_workers,
+    Messaging * m,
     bool keep_going=false);
 
 #endif

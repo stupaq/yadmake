@@ -1,4 +1,5 @@
 #include <iostream>
+#include <boost/foreach.hpp>
 
 #include "dbparser.h"
 #include "exec.h"
@@ -10,6 +11,9 @@ using namespace std;
 int main(int argc, char* argv[]) {
 	const string make_command = "make";
 	vector<string> args;
+  vector<Worker *> workers;
+  Messaging *m;
+
 	args.push_back("-pq");
 	if (argc > 1) {
 		args.push_back("-C");
@@ -28,8 +32,18 @@ int main(int argc, char* argv[]) {
 	/* dump makefile */
 	graph.DumpMakefile(cout);
 
+  /* create messaging, workers, not ready to use */
+  m = new Messaging();
+  workers = get_workers(m);
+
 	/* run dispatcher */
-	Dispatcher(graph, false);
+	Dispatcher(graph, workers, m, false);
+
+  /* delete workers, messaging */
+  BOOST_FOREACH(Worker *w, workers)
+    delete w;
+
+  delete m;
 
 	return 0;
 }

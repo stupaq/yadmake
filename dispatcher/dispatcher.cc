@@ -15,14 +15,15 @@
 #include "dispatcher.h"
 #include "err.h"
 
-std::vector<Worker *> get_ready_workers(Messaging *m,
-		std::vector<Worker *> & broken_workers)
+std::vector<Worker *> get_ready_workers(
+    Messaging *m,
+    const std::vector<Worker *> & created_not_ready_workers)
 {
 	int n;
-	std::vector<Worker *> result;
 	Report r;
+  std::vector<Worker *> result;
 
-	n = get_workers(m).size();
+	n = created_not_ready_workers.size();
 
 	for(int i = 0; i < n; ++i)
 	{
@@ -33,23 +34,24 @@ std::vector<Worker *> get_ready_workers(Messaging *m,
 				result.push_back(r.worker);
 				break;
 			case SshError:
-				broken_workers.push_back(r.worker);
 				fprintf(stderr, "SshError during initialization\n");
 				break;
 			default:
 				fprintf(stderr, "sth unusual happend\n");
 		}
 	}
-	return result;
+  return result;
 }
 
-void Dispatcher(const DependencyGraph & dependency_graph,
-		bool keep_going){
 
+void Dispatcher(const DependencyGraph & dependency_graph,
+    std::vector<Worker *> created_not_ready_workers,
+    Messaging * m,
+		bool keep_going)
+{
 	std::vector<Worker *> free_workers;
-	std::vector<Worker *> broken_workers;
-	std::vector<Target *> ready_targets;
-	Messaging *m = new Messaging();
+  std::vector<Target *> ready_targets;
+	// Messaging *m = new Messaging();
 	int child_count;
 	Report report;
 
@@ -57,7 +59,7 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 
 	ready_targets = dependency_graph.leaf_targets_;
 
-	free_workers = get_ready_workers(m, broken_workers);
+	free_workers = get_ready_workers(m, created_not_ready_workers);
 
 	child_count = 0;
 
@@ -94,7 +96,6 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 					/* delete worker, repeat target */
 					fprintf(stderr, "SshError during build\n");
 					ready_targets.push_back(report.target);
-					broken_workers.push_back(report.worker);
 					break;
 				case NewJob:
 					/* wtf? TODO */
@@ -107,7 +108,6 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 				case WorkerDied:
 					fprintf(stderr, "Worker Died much too early\n");
 					ready_targets.push_back(report.target);
-					broken_workers.push_back(report.worker);
 					break;
 				default:
 					fprintf(stderr, "impossible is nothing\n");
@@ -116,11 +116,4 @@ void Dispatcher(const DependencyGraph & dependency_graph,
 				syserr("all workers failed");
 		}
 	}
-
-	BOOST_FOREACH(Worker *w, free_workers)
-		delete w;
-	BOOST_FOREACH(Worker *w, broken_workers)
-		delete w;
-
-	delete m;
 }
