@@ -50,8 +50,6 @@ void do_kill_worker(int sig) {
 		try {
 			currentWorker->session_->disconnect();
 			delete currentWorker->session_;
-
-			currentWorker->msg_parent_->Send(WorkerDied, currentWorker);
 		} catch (...) {}
 
 		errno = 0;
@@ -77,6 +75,10 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 		currentWorker = this;
 
 		/* setup */
+		signal(SIGINT, SIG_DFL);
+		signal(SIGTERM, SIG_DFL);
+		signal(SIGUSR1, SIG_DFL);
+
 		{
 			struct sigaction setup_action;
 			sigset_t block_mask;
