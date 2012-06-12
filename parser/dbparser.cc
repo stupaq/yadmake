@@ -377,7 +377,8 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 				++begin;
 			string to_push = to_push_temp.substr(begin, end - begin);
 			if (to_push != "") {
-				it->commands_.push_back(to_push);
+				if (to_push.substr(0, 6) != "make: ")
+					it->commands_.push_back(to_push);
 				c_pos = delim_pos + delim.length();
 			}
 			else c_pos++;
