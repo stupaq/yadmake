@@ -37,7 +37,8 @@ struct Report {
 };
 
 /** Messaging primitive between dispatcher and worker.
- * Note that no worker process should invoke destructor of Messaging object. */
+ * Note that no worker process should invoke destructor of Messaging object.
+ * THIS IMPLEMENTATION IS _NOT_ REENTRANT */
 class Messaging {
 private:
 	int msgqid_;

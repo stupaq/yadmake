@@ -110,6 +110,8 @@ SshWorker::SshWorker(const string& hostname, const string& working_dir,
 	} catch (SshException e) {
 		msg_parent_->Send(SshError);
 		fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
+		/* block and wait for signal */
+		pause();
 	}
 
 	/* run main dispatcher */
@@ -198,7 +200,8 @@ void SshWorker::do_run() {
 		} catch(SshException e) {
 			msg_parent_->Send(SshError, this, r.target);
 			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
-			continue;
+			/* block and wait for signal */
+			pause();
 		}
 
 		/* notify that we've done here */
