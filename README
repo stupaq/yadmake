@@ -1,0 +1,44 @@
+Konfiguracja YADMAKE.
+
+1. Nalezy zadbac o mozliwosc logowania sie na jednostki robocze
+	przez ssh za pomoca kluczy RSA (bez podawania hasla).
+	Domyslnie klucz publiczny nazywa sie id_rsa.pub,
+	zas prywatny id_rsa.
+
+2. W katalogu .ssh (znajdujacym sie w katalogu domowym)
+	nalezy utworzyc plik o nazwie config. Plik ten powinien
+	zawierac wpisy dla kazdej jednostki roboczej. Przykladowy wpis
+	potrzebny do zalogowania sie na komputer w laboratorium:
+	
+	Host brown08
+		HostName students.mimuw.edu.pl
+		User al305162
+		IdentityFile ~/.ssh/id_rsa
+
+	gdzie:
+	- Host jest aliasem jednostki roboczej
+	- HostName jest nazwa hosta
+	- User jest nazwa uzytkownika
+	- IdentityFile jest kluczem prywatnym
+
+3. W katalogu domowym nalezy utworzyc katalog  o nazwie .yadmake
+	a w nim plik o nazwie hosts.
+	W tym pliku nalezy umiescic nazwy jednostek roboczych
+	(odpowiadajace nazwom Host z pliku ~/.ssh/config)
+	i sciezki pod ktorymi podmontowany jest katalog, w ktorym
+	bedzie sie odbywac kompilacja. Mozna podac sciezke bezwzgledna
+	lub wzgledem katalogu domowego.
+	Przykladowy plik moze wygladac tak:
+
+	students /home/students/jsim/a/al305162/io/projekt
+	brown08 /home/students/jsim/a/al305162/io/projekt
+	brown05 io/projekt
+	brown10 io/projekt
+
+4. W katalogu yadmake nalezy wykonac polecenie make. Nastepnie
+	powstaly plik yadmake nalezy umiescic w katalogu, w ktorym
+	bedzie odbywac sie kompilacja.
+
+5. Kompilacje uruchamia sie w sposob standardowy, zamieniajac
+	polecenie 'make' na './yadmake'.
+
