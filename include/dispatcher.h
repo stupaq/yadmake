@@ -1,3 +1,7 @@
+/**
+ * @defgroup dispatcher_dispatcher Dispatcher
+ * Dispatching targets over farm of remote workers */
+
 #ifndef _DISPATCHER_
 #define _DISPATCHER_
 
@@ -17,7 +21,6 @@
  * workers ready to build
  * (calls ReinitInord)
  * state after:
- * inord NOT correct (TODO ?)
  * workers are free
  * [hopefully targets are built]
  */

@@ -1,3 +1,7 @@
+/**
+ * @defgroup remote_worker Remote execution
+ * Remote execution abstracts and remote worker implementation */
+
 #ifndef _WORKER_H
 #define _WORKER_H
 

@@ -1,3 +1,7 @@
+/**
+ * @defgroup parser_dbparser Parser
+ * Dependency graph structure and Makefile parser */
+
 #ifndef _DBPARSER_H_
 #define _DBPARSER_H_
 
