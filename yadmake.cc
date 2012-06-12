@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 			/* create database */
 			const string make_command = "make";
 			vector<string> args;
-			args.push_back("-pq");
+			args.push_back("-pqj");
 			pair<string, string> out = exec(make_command, args);
 
 			/* create graph */
