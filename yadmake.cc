@@ -10,7 +10,6 @@
 
 using namespace std;
 
-/** global resources, need to free on every execution path */
 vector<Worker *> workers;
 Messaging *m = NULL;
 
@@ -42,11 +41,13 @@ int main(int argc, char* argv[]) {
 
 	try {
 		/*get options */
-		options r = PrepareOptions(argc, argv);
+		options r = prepare_options(argc, argv);
 
 		system(r.exec.c_str());
+
 		if (r.dist_make) {
-			/* read MakefileDB */
+
+			/* create database */
 			const string make_command = "make";
 			vector<string> args;
 			args.push_back("-pq");
@@ -57,8 +58,7 @@ int main(int argc, char* argv[]) {
 
 			/* get commands */
 			const string delimiter = "3344543508980989031231";
-			vector<string> basics;
-			graph.CountCommands(r.forward, delimiter);
+			graph.CountCommands(r.forward, delimiter, r.targets);
 
 			/* dump makefile */
 			graph.DumpMakefile(cout);
@@ -73,7 +73,6 @@ int main(int argc, char* argv[]) {
 			/* delete workers, messaging */
 			BOOST_FOREACH(Worker *w, workers)
 				delete w;
-
 			delete m;
 		}
 	}
@@ -88,7 +87,7 @@ int main(int argc, char* argv[]) {
 		handler(1);
 	}
 	catch (runtime_error E) {
-		cerr << E.what() << endl;
+		fprintf(stderr, "%s\n", E.what());
 		handler(1);
 	}
 
