@@ -13,6 +13,8 @@
 
 options prepare_options(int argc, char **argv){
 std::vector<std::string> forward;
+std::vector<std::string>targets;
+char version[] = "yadmake 0.1 ";
 
 bool exec = 0;
 bool is_p = 0;
@@ -23,20 +25,24 @@ const char *opt = "bmBdeikLno:pqrRsStvW:";
 std::string temp;
 options result;
 result.keep_going = 0;
+result.dist_make = 0;
+result.exec = "";
   
 while ((c = getopt (argc, argv, opt)) != -1) {
   switch (c) {
     case 'p':
       is_p = 1;
       break;
-    case 'n':
+	case 'v':
+	  std::cout << version << std::endl;
+	  return result;
+	case 'n':
     case 'q':
     case 't':
-    case 'v':
       exec = 1;
       break;
     case 'k':
-      result.keep_going = 0;
+      result.keep_going = 1;
     case 'b':
     case 'm':
     case 'B':
@@ -107,8 +113,12 @@ else {
  
   if (is_clean != argc - 1 || argc == 1) {
     result.dist_make =1;
-    for (i = is_clean + 1; i < argc; i++) {
-      forward.push_back(argv[i]);
+	int j;
+	if (is_clean = 0)
+		j = optind;
+	else j = is_clean + 1;
+    for (i = j;  i < argc; i++) {
+      targets.push_back(argv[i]);
     }
   }
   else
@@ -117,6 +127,7 @@ else {
 
 result.forward = forward;
 result.exec = temp;
+result.targets = targets;
 
 return result;
 }
