@@ -1,0 +1,6 @@
+Host students
+    Hostname students.mimuw.edu.pl
+    User mm305678
+    IdentityFile ~/.ssh/mm-ring3-rsa
+	ServerAliveInterval 60
+

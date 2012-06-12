@@ -1,0 +1,133 @@
+%% IOP - plan zarządzania konfiguracją
+%
+
+\documentclass[a4paper]{article}
+
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage{fullpage}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage{ifthen}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{wrapfig}
+\usepackage{siunitx}
+\usepackage{xstring}
+\usepackage{float}
+
+
+\title{Plan zarządzania konfiguracją projektu ,,System rozproszonej kompilacji''}
+\author{Marta Drozdek, Anna Lewicka, Wacław Banasik, Mateusz Machalica}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{|c|c|p{3cm}|p{9cm}|}
+		\hline
+		\textbf{Data} & \textbf{Wersja} & \textbf{Autorzy} & \textbf{Opis zmian} \\ \hline
+		01/04/2012 & 1 & Anna Lewicka, Marta Drozdek & Wstępna wersja dokumentu \\ \hline
+		29/05/2012 & 2 & Mateusz Machalica & Dodanie wstępu i formalizacja użytych zwrotów i pojęć, formalne określenie butów podlegających zarządzaniu, i sposobu obsługi bazy danych konfiguracji oraz systemu zarządzania projektem. Zaktualizowano schemat wydań. \\ \hline
+	\end{tabular}
+\end{table}
+
+\section{Wstęp}
+
+Celem tego dokumentu jest opisanie przyjętych metod zarządzania konfiguracją, to znaczy procedur i standardów podejmowanych celem panowania nad ewolucją projektu.
+
+\section{Byty podlegające zarządzaniu konfiguracjami}
+
+Zarządzaniu konfiguracją podlegają:
+\begin{itemize}
+	\item kod źródłowy projektu
+	\item dokumentacja potrzebna przy dalszym rozwoju projektu: wizja oraz architektura projektu, plany zarządzania konfiguracją i jakością oraz opis wymagań projektu
+	\item wytworzone narzędzia oraz skrypty do budowy, konfigurowania, instalacji i testowania systemu
+	\item wyniki testów wydajnościowych (w późniejszy, stabilnych wydaniach systemu)
+	\item pliki źródłowe, przy pomocy których automatycznie generowana jest dokumentacja kodu źródłowego
+	\item zgłoszenia usterek, żądania zmiany lub rozbudowy funkcjonalności (wraz z aktualnym stanem zgłoszenia, to znaczy opisem kto jest odpowiedzialny za wprowadzenie tej zmiany i w jakim stopniu została wprowadzona w najnowszej wersji)
+	\item raporty stwierdzające wykonanie lub odrzucenie żądanej zmiany w projekcie lub naprawy usterki
+\end{itemize}
+
+\section{Baza danych konfiguracji}
+
+Konfiguracje projektu (byty podlegające zarządzaniu) przechowywane są w repozytorium projektu w serwisie GitHub poza żądaniami zmian lub naprawy usterek i raportami z postępu tych prac, które znajdują się w systemie zarządzania projektem serwisu GitHub\footnote{zakładka ,,Issues'' na głównej stronie projektu}.
+
+\subsection{Organizacja repozytorium}
+ 
+Każdy moduł rozwijany jest w osobnej gałęzi. W oddzielnych gałęziach przechowujemy testy do poszczególnych modułów.
+
+W gałęzi \verb+master+ przechowujemy wersje przetestowane, implementujące kompletną funkcjonalność przewidywaną dla danej wersji oprogramowania, oznaczone etykietą (,,tag'') zawierającą numer wersji, w formacie opisanym w dalszej części dokumentu.
+
+Oprócz tego w oddzielnej gałęzi \verb+docs+ przechowujemy dokumentację projektu.
+
+Z racji rozpoczęcia użycia bazy konfiguracji przed ustaleniem standardów odnośnie opisu commit'ów zapisywanych w bazie, dopuszczamy aby do ukończenia prac nad wersją ,,0.1'' używać w opisach języka polskiego lub angielskiego.
+
+\subsection{Informacje o wersjach dla zespołu}
+
+Każdy moduł powinien  być opatrzony komentarzem opisującym status wersji przed włączeniem do gałęzi \verb+master+. Powinien on informować, czy dana wersja została przetestowana i czy pliki źródłowe zostały zaakceptowane przez innego członka zespołu niż ich autor.
+
+\section{Identyfikacja wersji}
+
+\subsection{Nazewnictwo i numerowanie}
+
+Kolejne wersje oprócz nazwy programu będą oznaczane wersją -- dwoma liczbami naturalnymi oddzielonymi kropką. Pierwszą wersją będzie ,,0.1''.
+Zwiększenie pierwszej liczby będzie oznaczało istotne zmiany funkcjonalności, zaś zwiększenie drugiej -- wprowadzenie poprawek nie wpływających na zakres funkcjonalności systemu, ale potencjalnie powodujących poprawę wydajności lub stabilności oprogramowania.
+Wersje stabilne będą oznaczone dodatkowo słowem ,,stable'' znajdującym się po numerze wersji.
+
+\subsection{Informacja o wersjach dla użytkownika}
+
+Wywołując program z opcją \verb+-v+ użytkownik będzie mógł dowiedzieć się, z jakiej wersji programu aktualnie korzysta. Dane na temat wersji będą trzymane w jednym z plików źródłowych w formie tablicy znaków zakończonej terminalnym zerem. 
+
+\section{Zarządzanie wydaniami}
+
+Przyjmujemy zasadę, że dla każdej wersji stabilnej oprogramowania tworzymy nowe wydanie.
+Z racji niekomercyjnego i eksperymentalnego charakteru projektu nie jesteśmy ograniczeni takimi czynnikami, jak propozycje zmian od klienta czy wymagania rynkowo-marketingowe.
+
+Każde wydanie będzie zawierało pełną dokumentację projektu (wraz z dokumentacją kodu, generowaną automatycznie), skrypty potrzebne do budowy systemu oraz przykładowe pliki konfiguracyjne.
+Nie zamierzamy dostarczać binarnych paczek.
+
+\section {Kontrola stanu projektu zarządzanie zmianami}
+
+Każdej wersji systemu odpowiada kamień milowy w systemie zarządzania projektem o nazwie takiej jak numer wersji.
+
+Wszystkie usterki, pytania i żądania zgłaszane w systemie zarządzania projektem w serwisie GitHub, jeśli dotyczą konkretnej wersji powinny być przypisane do kamienia milowego odpowiadającego tej wersji.
+
+Treść zgłoszenia powinna zawierać określenie żądanych zmian (poprawy lub rozszerzenia funkcjonalności, zmiany implementacji i innych).
+Jeśli została wyznaczona osoba, która jest odpowiedzialna za rozwiązanie zgłoszonego problemu, to informacja o tym powinna znaleźć się w systemie w postaci przypisania danego problemu do tej osoby.
+System komentarzy pozwala wyrazić opinie i notować zalety, wady oraz inne spostrzeżenia, jak na przykład koszt wprowadzenia zmiany i przewidywane zyski.
+Jeśli zgłoszenie zostanie zamknięte to w komentarzu powinien się pojawić opis decyzji podjętych odnośnie zmiany oraz w przypadku, gdy nie panowała całkowita zgoda odnośnie podjętej decyzji lub decyzja została podjęta dzięki nietrywialnej obserwacji (na przykład wynikom testów), w komentarzu należy umieścić również opis czynników, które wpłynęły na tą decyzję (jej uzasadnienie).
+
+Zgłoszenia mogą zostać zamknięte dopiero po poprawieniu błędu, dodaniu funkcjonalności, podjęciu decyzji projektowej odpowiadającej na pytanie lub odrzuceniu zgłoszenia.
+
+\subsection{Rozszerzenie funkcjonalności}
+
+Propozycja rozszerzenia funkcjonalności zgłaszana jest w środowisku GitHub z etykietą ,,enhancement''.
+Członkowie zespołu wspólnie omawiają sensowność propozycji, następnie jest ona przyjmowana bądź odrzucana przez zespół.
+Po dokonaniu zmian nowa wersja jest testowana. Jeśli okaże się lepsza od poprzedniej, to zostaje włączona do systemu.
+
+\subsection{Zgłaszanie błędów}
+
+Zauważone błędy w bieżącej wersji są zgłaszane w środowisku GitHub z etykietą ,,bug''.
+Autor fragmentu kodu, w którym znaleziono błąd jest odpowiedzialny za poprawienie go i zamknięcie informacji o błędzie wraz z opisem działań podjętych celem poprawienia błędu.
+
+\subsection{Zgłaszanie prośby o analizę decyzji projektowej}
+
+W systemie zarządzania projektem należy również zgłaszać z etykietą ,,question'' wszystkie wynikłe w trakcie implementacji lub projektowania konkretnych modułów wątpliwości, nie opisane w dokumentach takich jak plany zarządzania konfiguracją i jakością, opisie wymagań lub architektury.
+Należy przy tym zgłaszać jedynie wątpliwości, które mają pływ na inne moduły lub architekturę systemu, nie wątpliwości implementacyjne, jeśli nie kwalifikują się jako jedne z poprzednich.
+
+Dla usystematyzowania, za decyzje projektowe (a więc odpowiadające na wątpliwości/pytania, które należy zgłaszać w systemie zarządzania projektem) uznajemy decyzje:
+\begin{itemize}
+	\item wpływające na inne moduły oprogramowania lub architekturę systemu
+	\item wpływające na wydajność systemu lub spełnialność innych wymagań pozafunkcjonalnych, jeśli nie są natury implementacyjnej
+	\item wymagające dużego nakładu pracy potrzebnej do wprowadzenia zmian
+\end{itemize}
+
+Podjęte decyzje powinny zostać opisane wraz z uzasadnieniem w komentarzu pod danym pytaniem (po podjęciu decyzji zgłoszenie może zostać zamknięte).
+
+Podjęta decyzja nie jest zgodna z treścią dokumentacji projektu, to przed zamknięciem zgłoszenia dokumentacja musi zostać zaktualizowana.
+
+\end{document}
