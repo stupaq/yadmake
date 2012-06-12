@@ -1,0 +1,294 @@
+<?xml version="1.0"?>
+<project name="yadmake - Harmonogram projektu" company="" manager="" phase="" project-start="20120214T000000Z" mrproject-version="2" calendar="1">
+  <properties/>
+  <phases/>
+  <calendars>
+    <day-types>
+      <day-type id="0" name="Working" description="A default working day"/>
+      <day-type id="1" name="Nonworking" description="A default non working day"/>
+      <day-type id="2" name="Use base" description="Use day from base calendar"/>
+    </day-types>
+    <calendar id="1" name="Domy&#x15B;lny">
+      <default-week mon="0" tue="0" wed="0" thu="0" fri="0" sat="1" sun="1"/>
+      <overridden-day-types>
+        <overridden-day-type id="0">
+          <interval start="0800" end="1200"/>
+          <interval start="1300" end="1700"/>
+        </overridden-day-type>
+      </overridden-day-types>
+      <days/>
+    </calendar>
+  </calendars>
+  <tasks>
+    <task id="1" name="Wizja projektu" note="" work="144000" start="20120221T000000Z" end="20120222T100000Z" work-start="20120221T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120221T000000Z"/>
+    </task>
+    <task id="2" name="Projekt techniczny" note="" work="144000" start="20120228T000000Z" end="20120229T100000Z" work-start="20120228T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120228T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="1" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="3" name="Wymagania projektu" note="" work="144000" start="20120306T000000Z" end="20120307T100000Z" work-start="20120306T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120306T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="4" name="Plan zarz&#x105;dzania jako&#x15B;c&#x105;" note="" work="144000" start="20120313T000000Z" end="20120315T120000Z" work-start="20120313T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120313T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="3" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="5" name="Plan zarz&#x105;dzania konfiguracj&#x105;" note="" work="144000" start="20120320T000000Z" end="20120322T120000Z" work-start="20120320T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120320T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="4" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="6" name="Parser MakefileDB" note="" work="144000" start="20120315T000000Z" end="20120321T170000Z" work-start="20120315T080000Z" percent-complete="40" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120316T000000Z"/>
+      <task id="7" name="Specyfikacja interfejsu" note="" work="28800" start="20120315T000000Z" end="20120315T170000Z" work-start="20120315T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="start-no-earlier-than" time="20120315T000000Z"/>
+        <predecessors>
+          <predecessor id="1" predecessor-id="3" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="8" name="Implementacja podstawowej funkcjonalno&#x15B;ci" note="" work="86400" start="20120315T170000Z" end="20120320T170000Z" work-start="20120316T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="7" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="9" name="Testy jednostkowe" note="" work="28800" start="20120320T170000Z" end="20120321T170000Z" work-start="20120321T080000Z" percent-complete="74" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="8" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="10" name="Budowanie grafu wykonania" note="" work="115200" start="20120315T000000Z" end="20120320T170000Z" work-start="20120315T080000Z" percent-complete="60" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120316T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+      <task id="11" name="Specyfikacja interfejsu" note="" work="28800" start="20120315T000000Z" end="20120315T170000Z" work-start="20120315T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="start-no-earlier-than" time="20120315T000000Z"/>
+      </task>
+      <task id="12" name="Implementacja" note="" work="57600" start="20120315T170000Z" end="20120319T170000Z" work-start="20120316T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="11" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="13" name="Testy jednostkowe" note="" work="28800" start="20120319T170000Z" end="20120320T170000Z" work-start="20120320T080000Z" percent-complete="82" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="12" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="14" name="Parser konfiguracji" note="" work="172800" start="20120315T000000Z" end="20120322T170000Z" work-start="20120315T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120323T000000Z"/>
+      <task id="15" name="Specyfikacja interfejsu" note="" work="28800" start="20120315T000000Z" end="20120315T170000Z" work-start="20120315T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <constraint type="start-no-earlier-than" time="20120315T000000Z"/>
+      </task>
+      <task id="16" name="Implementacja" note="" work="86400" start="20120315T170000Z" end="20120320T170000Z" work-start="20120316T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="15" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="17" name="Testy jednostkowe" note="" work="28800" start="20120320T170000Z" end="20120321T170000Z" work-start="20120321T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="16" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="18" name="Przygotowanie &#x15B;rodowiska testowego i plik&#xF3;w konfiguracyjnych" note="" work="28800" start="20120321T170000Z" end="20120322T170000Z" work-start="20120322T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="17" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="19" name="Monitor wykonywania cel&#xF3;w" note="" work="518400" start="20120315T170000Z" end="20120409T170000Z" work-start="20120316T080000Z" percent-complete="5" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="15" type="FS"/>
+        <predecessor id="1" predecessor-id="11" type="FS"/>
+        <predecessor id="1" predecessor-id="7" type="FS"/>
+      </predecessors>
+      <task id="20" name="Analiza wydajno&#x15B;ci dostepnych rozwi&#x105;za&#x144; (wielow&#x105;tkowo&#x15B;&#x107;)" note="" work="57600" start="20120315T170000Z" end="20120316T170000Z" work-start="20120316T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work"/>
+      <task id="21" name="Implementacja" note="" work="288000" start="20120316T170000Z" end="20120330T170000Z" work-start="20120319T080000Z" percent-complete="3" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="27" type="FS"/>
+          <predecessor id="1" predecessor-id="20" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="22" name="Testy jednostkowe" note="" work="28800" start="20120330T170000Z" end="20120402T170000Z" work-start="20120402T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="21" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="23" name="Optymalizacja" note="" work="86400" start="20120402T170000Z" end="20120405T170000Z" work-start="20120403T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="22" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="24" name="Testy jednostkowe" note="" work="28800" start="20120405T170000Z" end="20120406T170000Z" work-start="20120406T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="23" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="25" name="Testy regresyjne" note="" work="28800" start="20120406T170000Z" end="20120409T170000Z" work-start="20120409T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="24" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="26" name="Zdalne wykonanie cel&#xF3;w" note="" work="201600" start="20120315T170000Z" end="20120321T170000Z" work-start="20120316T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <task id="27" name="Specyfikacja interfejsu" note="" work="28800" start="20120315T170000Z" end="20120316T170000Z" work-start="20120316T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="15" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="28" name="Impementacja modu&#x142;u do zdalnego wykonania zada&#x144; z klonowaniem &#x15B;rodowiska" note="" work="86400" start="20120316T170000Z" end="20120321T170000Z" work-start="20120319T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="27" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="29" name="Implementacja nrz&#x119;dzia do automoatycznej konfiguracji maszyn zdalnych" note="" work="86400" start="20120316T170000Z" end="20120321T170000Z" work-start="20120319T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="27" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="30" name="Integracja systemu" note="" work="115200" start="20120409T170000Z" end="20120412T170000Z" work-start="20120410T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="17" type="FS"/>
+        <predecessor id="1" predecessor-id="9" type="FS"/>
+        <predecessor id="1" predecessor-id="13" type="FS"/>
+        <predecessor id="1" predecessor-id="19" type="FS"/>
+      </predecessors>
+      <task id="31" name="Integracja modu&#x142;&#xF3;w" note="" work="28800" start="20120409T170000Z" end="20120410T170000Z" work-start="20120410T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="25" type="FS"/>
+          <predecessor id="1" predecessor-id="29" type="FS"/>
+          <predecessor id="1" predecessor-id="28" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="32" name="Przygotowanie wydania" note="" work="28800" start="20120409T170000Z" end="20120410T170000Z" work-start="20120410T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="18" type="FS"/>
+        </predecessors>
+      </task>
+      <task id="33" name="Testy integracyjne" note="" work="57600" start="20120410T170000Z" end="20120412T170000Z" work-start="20120411T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+        <predecessors>
+          <predecessor id="1" predecessor-id="32" type="FS"/>
+          <predecessor id="1" predecessor-id="31" type="FS"/>
+        </predecessors>
+      </task>
+    </task>
+    <task id="34" name="Prezentacja systemu 1" note="" work="28800" start="20120417T000000Z" end="20120417T170000Z" work-start="20120417T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120417T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="33" type="FS"/>
+        <predecessor id="1" predecessor-id="5" type="FS"/>
+        <predecessor id="1" predecessor-id="30" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="35" name="Iteracja 1: Podstawowa funkcjonalno&#x15B;&#x107;" note="" work="0" start="20120417T170000Z" end="20120417T170000Z" work-start="20120417T170000Z" percent-complete="0" priority="0" type="milestone" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="34" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="36" name="Analiza wynik&#xF3;w iteracji 1" note="" work="86400" start="20120418T000000Z" end="20120420T170000Z" work-start="20120418T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="start-no-earlier-than" time="20120418T000000Z"/>
+      <predecessors>
+        <predecessor id="1" predecessor-id="34" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="37" name="Wizja projektu" note="" work="144000" start="20120420T170000Z" end="20120427T170000Z" work-start="20120423T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="36" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="38" name="Projekt techniczny" note="" work="144000" start="20120427T170000Z" end="20120504T170000Z" work-start="20120430T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="37" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="39" name="Wymagania projektu" note="" work="144000" start="20120504T170000Z" end="20120511T170000Z" work-start="20120507T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="38" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="40" name="Plan zarz&#x105;dzania jako&#x15B;c&#x105;" note="" work="144000" start="20120511T170000Z" end="20120518T170000Z" work-start="20120514T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="39" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="41" name="Plan zarz&#x105;dzania konfiguracj&#x105;" note="" work="144000" start="20120518T170000Z" end="20120525T170000Z" work-start="20120521T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="40" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="42" name="Synchronizacja &#x17A;r&#xF3;de&#x142; i cel&#xF3;w" note="" work="144000" start="20120504T170000Z" end="20120511T170000Z" work-start="20120507T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="38" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="43" name="Optymizacje grafu wykonania" note="" work="432000" start="20120504T170000Z" end="20120525T170000Z" work-start="20120507T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="38" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="44" name="Optymalizacja synchronizacji &#x17A;r&#xF3;de&#x142;" note="" work="288000" start="20120511T170000Z" end="20120525T170000Z" work-start="20120514T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="42" type="FS"/>
+        <predecessor id="1" predecessor-id="38" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="45" name="Prezentacja systemu 2" note="" work="28800" start="20120525T170000Z" end="20120528T170000Z" work-start="20120528T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="41" type="FS"/>
+        <predecessor id="1" predecessor-id="43" type="FS"/>
+        <predecessor id="1" predecessor-id="44" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="46" name="Iteracja 2: Optymalizacje i powi&#x119;kszanie funkcjonalno&#x15B;ci" note="" work="0" start="20120528T170000Z" end="20120528T170000Z" work-start="20120528T170000Z" percent-complete="0" priority="0" type="milestone" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="45" type="FS"/>
+      </predecessors>
+    </task>
+  </tasks>
+  <resource-groups>
+    <group id="1" name="Ca&#x142;y zesp&#xF3;&#x142;" admin-name="" admin-phone="" admin-email=""/>
+  </resource-groups>
+  <resources>
+    <resource group="1" id="1" name="Wac&#x142;aw Banasik" short-name="Wacek" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource group="1" id="2" name="Marta Drozdek" short-name="Marta" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource group="1" id="3" name="Anna Lewicka" short-name="Ania" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource group="1" id="4" name="Mateusz Machalica" short-name="Mateusz" type="1" units="0" email="" note="" std-rate="0"/>
+  </resources>
+  <allocations>
+    <allocation task-id="3" resource-id="1" units="100"/>
+    <allocation task-id="2" resource-id="1" units="100"/>
+    <allocation task-id="1" resource-id="1" units="100"/>
+    <allocation task-id="30" resource-id="1" units="100"/>
+    <allocation task-id="5" resource-id="2" units="100"/>
+    <allocation task-id="3" resource-id="2" units="100"/>
+    <allocation task-id="2" resource-id="2" units="100"/>
+    <allocation task-id="1" resource-id="2" units="100"/>
+    <allocation task-id="30" resource-id="2" units="100"/>
+    <allocation task-id="20" resource-id="3" units="100"/>
+    <allocation task-id="5" resource-id="3" units="100"/>
+    <allocation task-id="4" resource-id="3" units="100"/>
+    <allocation task-id="3" resource-id="3" units="100"/>
+    <allocation task-id="2" resource-id="3" units="100"/>
+    <allocation task-id="1" resource-id="3" units="100"/>
+    <allocation task-id="30" resource-id="3" units="100"/>
+    <allocation task-id="10" resource-id="3" units="100"/>
+    <allocation task-id="20" resource-id="4" units="100"/>
+    <allocation task-id="4" resource-id="4" units="100"/>
+    <allocation task-id="3" resource-id="4" units="100"/>
+    <allocation task-id="2" resource-id="4" units="100"/>
+    <allocation task-id="1" resource-id="4" units="100"/>
+    <allocation task-id="30" resource-id="4" units="100"/>
+    <allocation task-id="6" resource-id="4" units="100"/>
+  </allocations>
+</project>
