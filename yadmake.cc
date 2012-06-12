@@ -39,6 +39,11 @@ int main(int argc, char* argv[]) {
 	/* clean everything after a signal */
 	catch_signals();
 
+	if (setenv("LANG", "en_US.UTF-8", 1) == -1) {
+		fprintf(stderr, "Cannot change environment");
+		exit(1);
+	}
+
 	try {
 		/*get options */
 		options r = prepare_options(argc, argv);
