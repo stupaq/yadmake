@@ -114,7 +114,7 @@ options prepare_options(int argc, char **argv){
 		if (is_clean != argc - 1 || argc == 1) {
 			result.dist_make =1;
 			int j;
-			if (is_clean = 0)
+			if (is_clean == 0)
 				j = optind;
 			else j = is_clean + 1;
 			for (i = j;  i < argc; i++) {
