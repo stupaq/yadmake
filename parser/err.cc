@@ -1,5 +1,4 @@
 #include <cerrno>
-#include <cstdio>
 #include <cstring>
 
 #include <exception>
@@ -24,7 +23,6 @@ const char* SystemError::what() throw () {
 }
 
 void syserr(const char* message) throw (SystemError) {
-	fprintf(stderr, "%s\nERRNO: %d\n", message, errno);
 	throw SystemError(std::string(message));
 }
 
