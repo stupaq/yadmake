@@ -57,7 +57,7 @@ std::string Target::BuildBashScript(const std::string& working_dir) {
 }
 
 void Target::MarkRealized(std::vector<Target*> &ready_targets) {
-	BOOST_FOREACH(Target * i, dependent_targets_){
+	BOOST_FOREACH(Target * i, dependent_targets_) {
 		--(i->inord_);
 		if (i->inord_==0)
 			ready_targets.push_back(i);
@@ -120,7 +120,7 @@ void DependencyGraph::TrimToTargets(vector<string> targets) {
 }
 
 static inline Target*& access(unordered_map<string, Target*>& map,
-		const string& name) {
+                              const string& name) {
 	Target*& target = map[name];
 	if (target == NULL)
 		target = new Target(name);
@@ -264,10 +264,10 @@ void DependencyGraph::DumpMakefile(ostream& os) {
 
 		os << currt->kName_ << ":";
 		BOOST_FOREACH(Target*& t, currt->dependencies_)
-			os << " " << t->kName_;
+		os << " " << t->kName_;
 		os << '\n';
 		BOOST_FOREACH(string& s, currt->commands_)
-			os << '\t' << s << '\n';
+		os << '\t' << s << '\n';
 		os << endl;
 
 		BOOST_FOREACH(Target*& t, currt->dependent_targets_) {
@@ -287,11 +287,11 @@ vector<vector<Target*> > DependencyGraph::GetLevels() {
 		vector<Target*> next_level;
 
 		BOOST_FOREACH(Target* it, level)
-			BOOST_FOREACH(Target* parent, it->dependent_targets_) {
-				--parent->inord_;
-				if (parent->inord_ == 0)
-					next_level.push_back(parent);
-			}
+		BOOST_FOREACH(Target* parent, it->dependent_targets_) {
+			--parent->inord_;
+			if (parent->inord_ == 0)
+				next_level.push_back(parent);
+		}
 
 		level = next_level;
 	}
@@ -300,11 +300,11 @@ vector<vector<Target*> > DependencyGraph::GetLevels() {
 }
 
 void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& delimiter,
-		const vector<Target*>& to_make_temp, const vector<Target*>& not_to_make) {
+                                    const vector<Target*>& to_make_temp, const vector<Target*>& not_to_make) {
 	vector<Target*> to_make;
 	BOOST_FOREACH(Target* it, to_make_temp)
-		if (it->kName_ != delimiter)
-			to_make.push_back(it);
+	if (it->kName_ != delimiter)
+		to_make.push_back(it);
 
 	vector<string> options = basics;
 
@@ -344,7 +344,7 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 
 		size_t delim_pos = delima_pos;
 		if (delima_pos != string::npos && delimb_pos != string::npos
-				&& delimb_pos < delima_pos)
+		        && delimb_pos < delima_pos)
 			delim_pos = delimb_pos;
 		if (delima_pos == string::npos)
 			delim_pos = delimb_pos;
@@ -380,15 +380,14 @@ void DependencyGraph::CountOneLevel(const vector<string>& basics, const string& 
 				if (to_push.substr(0, 6) != "make: ")
 					it->commands_.push_back(to_push);
 				c_pos = delim_pos + delim.length();
-			}
-			else c_pos++;
+			} else c_pos++;
 		}
 	}
 }
 
 
 void DependencyGraph::CountCommands(const vector<string>& basics,
-		const string& delimiter, vector<string> targets) {
+                                    const string& delimiter, vector<string> targets) {
 
 	system("cp Makefile DMakefile");
 
@@ -410,7 +409,7 @@ void DependencyGraph::CountCommands(const vector<string>& basics,
 
 	CountOneLevel(n_basics, delimiter, *levels.begin(), vector<Target*>());
 	for (vector<vector<Target*> >::iterator it = levels.begin() + 1;
-			it != levels.end(); ++it)
+	        it != levels.end(); ++it)
 		CountOneLevel(n_basics, delimiter, *it, *(it - 1));
 
 	ReinitInord();

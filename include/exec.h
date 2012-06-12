@@ -10,6 +10,6 @@
  * @of this programme as strings.
  */
 extern std::pair<std::string, std::string> exec(const std::string& programme,
-		const std::vector<std::string>& arguments);
+        const std::vector<std::string>& arguments);
 
 #endif	// EXEC_EXEC_H_

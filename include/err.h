@@ -10,13 +10,13 @@
  * An exception thrown when errno indicates system error.
  */
 class SystemError : public std::exception {
-	private:
-		const int errno_;
-		std::string what_;
-	public:
-		SystemError(const std::string& what = "");
-		~SystemError() throw ();
-		virtual const char* what() throw ();
+private:
+	const int errno_;
+	std::string what_;
+public:
+	SystemError(const std::string& what = "");
+	~SystemError() throw ();
+	virtual const char* what() throw ();
 };
 
 /*

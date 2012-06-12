@@ -11,7 +11,7 @@
 
 
 
-options prepare_options(int argc, char **argv){
+options prepare_options(int argc, char **argv) {
 	std::vector<std::string> forward;
 	std::vector<std::string>targets;
 	char version[] = "yadmake 0.1 ";
@@ -30,54 +30,54 @@ options prepare_options(int argc, char **argv){
 
 	while ((c = getopt (argc, argv, opt)) != -1) {
 		switch (c) {
-			case 'p':
-				is_p = 1;
-				break;
-			case 'v':
-				std::cout << version << std::endl;
-				return result;
-			case 'n':
-			case 'q':
-			case 't':
-				exec = 1;
-				break;
-			case 'k':
-				result.keep_going = 1;
-			case 'b':
-			case 'm':
-			case 'B':
-			case 'd':
-			case 'e':
-			case 'i':
-			case 'L':
-			case 'r':
-			case 'R':
-			case 's':
-			case 'S':
-				temp = argv[optind - 1];
-				forward.push_back(temp);
-				break;
-			case 'o':
-			case 'W':
-				temp = argv[optind - 1];
-				forward.push_back(temp);
-				temp = optarg;
-				forward.push_back(temp);
-				break;
-			case '?':
-				if (optopt == 'o' || optopt == 'W')
-					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-				else if (isprint (optopt))
-					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-				else
-					fprintf (stderr,
-							"Unknown option character `\\x%x'.\n",
-							optopt);
-				syserr("");
-				return result;
+		case 'p':
+			is_p = 1;
+			break;
+		case 'v':
+			std::cout << version << std::endl;
+			return result;
+		case 'n':
+		case 'q':
+		case 't':
+			exec = 1;
+			break;
+		case 'k':
+			result.keep_going = 1;
+		case 'b':
+		case 'm':
+		case 'B':
+		case 'd':
+		case 'e':
+		case 'i':
+		case 'L':
+		case 'r':
+		case 'R':
+		case 's':
+		case 'S':
+			temp = argv[optind - 1];
+			forward.push_back(temp);
+			break;
+		case 'o':
+		case 'W':
+			temp = argv[optind - 1];
+			forward.push_back(temp);
+			temp = optarg;
+			forward.push_back(temp);
+			break;
+		case '?':
+			if (optopt == 'o' || optopt == 'W')
+				fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+			else if (isprint (optopt))
+				fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+			else
+				fprintf (stderr,
+				         "Unknown option character `\\x%x'.\n",
+				         optopt);
+			syserr("");
+			return result;
 
-			default:
-				break;
+		default:
+			break;
 		}
 	};
 
@@ -94,20 +94,19 @@ options prepare_options(int argc, char **argv){
 
 	if (exec) {
 		temp = "make ";
-		for (i = 1; i < argc; i++) 
+		for (i = 1; i < argc; i++)
 			temp = temp + argv[i] + " ";
 		result.dist_make = 0;
-	}
-	else {
+	} else {
 		if (is_clean != 0) {
 			temp = "make clean ";
-			for (i = 0; i < (int) forward.size(); i++) 
+			for (i = 0; i < (int) forward.size(); i++)
 				temp = temp + forward[i] + " ";
 		}
 		if (is_p) {
 			if (!temp.empty())
 				temp += "-p -f /dev/null ";
-			else 
+			else
 				temp = "make -p -f /dev/null ";
 		}
 
@@ -120,8 +119,7 @@ options prepare_options(int argc, char **argv){
 			for (i = j;  i < argc; i++) {
 				targets.push_back(argv[i]);
 			}
-		}
-		else
+		} else
 			result.dist_make = 0;
 	}
 

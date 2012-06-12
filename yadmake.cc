@@ -16,7 +16,7 @@ Messaging *m = NULL;
 void clean_all() {
 	rename("DMakefile", "Makefile");
 	BOOST_FOREACH(Worker *w, workers)
-		delete w;
+	delete w;
 	if (m != NULL)
 		delete m;
 }
@@ -72,21 +72,18 @@ int main(int argc, char* argv[]) {
 
 			/* delete workers, messaging */
 			BOOST_FOREACH(Worker *w, workers)
-				delete w;
+			delete w;
 			delete m;
 		}
 	}
 
 	catch (CircularDependency E) {
 		handler(1);
-	}
-	catch (MakeError E) {
+	} catch (MakeError E) {
 		handler(1);
-	}
-	catch (SystemError E) {
+	} catch (SystemError E) {
 		handler(1);
-	}
-	catch (runtime_error E) {
+	} catch (runtime_error E) {
 		fprintf(stderr, "%s\n", E.what());
 		handler(1);
 	}

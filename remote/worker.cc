@@ -58,66 +58,66 @@ void do_kill_worker(int sig) {
 }
 
 SshWorker::SshWorker(const string& hostname, const string& working_dir,
-		Messaging* msg_parent, const string& config_path) : pid_(-1),
+                     Messaging* msg_parent, const string& config_path) : pid_(-1),
 	hostname_(hostname), working_dir_(working_dir), msg_parent_(msg_parent) {
-		/* EXEC: DISPATCHER */
+	/* EXEC: DISPATCHER */
 
-		msg_jobs_ = new Messaging();
+	msg_jobs_ = new Messaging();
 
-		pid_ = fork();
-		if (pid_ < 0) {
-			delete msg_jobs_;
-			throw SystemError("fork() failure");
-		} else if (pid_ > 0)
-			return;
+	pid_ = fork();
+	if (pid_ < 0) {
+		delete msg_jobs_;
+		throw SystemError("fork() failure");
+	} else if (pid_ > 0)
+		return;
 
-		/* EXEC: WORKER */
-		currentWorker = this;
+	/* EXEC: WORKER */
+	currentWorker = this;
 
-		/* setup */
-		signal(SIGINT, SIG_DFL);
-		signal(SIGTERM, SIG_DFL);
-		signal(SIGUSR1, SIG_DFL);
+	/* setup */
+	signal(SIGINT, SIG_DFL);
+	signal(SIGTERM, SIG_DFL);
+	signal(SIGUSR1, SIG_DFL);
 
-		{
-			struct sigaction setup_action;
-			sigset_t block_mask;
+	{
+		struct sigaction setup_action;
+		sigset_t block_mask;
 
-			sigemptyset(&block_mask);
-			sigaddset(&block_mask, SIGUSR1);
-			sigaddset(&block_mask, SIGTERM);
+		sigemptyset(&block_mask);
+		sigaddset(&block_mask, SIGUSR1);
+		sigaddset(&block_mask, SIGTERM);
 
-			setup_action.sa_handler = do_kill_build;
-			setup_action.sa_mask = block_mask;
-			setup_action.sa_flags = 0;
-			sigaction(SIGUSR1, &setup_action, NULL);
+		setup_action.sa_handler = do_kill_build;
+		setup_action.sa_mask = block_mask;
+		setup_action.sa_flags = 0;
+		sigaction(SIGUSR1, &setup_action, NULL);
 
 
-			setup_action.sa_handler = do_kill_worker;
-			setup_action.sa_mask = block_mask;
-			setup_action.sa_flags = 0;
-			sigaction(SIGTERM, &setup_action, NULL);
-		}
-
-		try {
-			/* connect and authenticate */
-			session_ = new Session;
-			session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
-			session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
-
-			session_->connect();
-			session_->userauthAutopubkey();
-		} catch (SshException e) {
-			msg_parent_->Send(SshError);
-			fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
-		}
-
-		/* run main dispatcher */
-		do_run();
-
-		/* this will dispose all data */
-		exit(0);
+		setup_action.sa_handler = do_kill_worker;
+		setup_action.sa_mask = block_mask;
+		setup_action.sa_flags = 0;
+		sigaction(SIGTERM, &setup_action, NULL);
 	}
+
+	try {
+		/* connect and authenticate */
+		session_ = new Session;
+		session_->setOption(SSH_OPTIONS_HOST, hostname_.c_str());
+		session_->optionsParseConfig(config_path.empty() ? NULL : config_path.c_str());
+
+		session_->connect();
+		session_->userauthAutopubkey();
+	} catch (SshException e) {
+		msg_parent_->Send(SshError);
+		fprintf(stderr, "SshException in worker: %s reason: %s\n", hostname_.c_str(), e.getError().c_str());
+	}
+
+	/* run main dispatcher */
+	do_run();
+
+	/* this will dispose all data */
+	exit(0);
+}
 
 SshWorker::~SshWorker() {
 	if (pid_ > 0) {
